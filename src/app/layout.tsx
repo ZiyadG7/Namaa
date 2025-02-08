@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import LeftNavBar from "./Components/LeftNavBar";
 import TopNavBar from "./Components/TopNavBar";
+import { Providers } from "./providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,21 +26,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="min-h-screen flex">
-          {/* Left Navigation Bar */}
-          <LeftNavBar />
-          {/* Main Content Area */}
-          <div className="flex-1 ml-56">
-            {/* Top Navigation Bar */}
-            <TopNavBar />
-            {/* Page Content */}
-            <main className="p-6">{children}</main>
+        <Providers>
+          <div className="min-h-screen flex">
+            {/* Left Navigation Bar */}
+            <LeftNavBar />
+            {/* Main Content Area */}
+            <div className="flex-1 ml-56 bg-slate-100 dark:bg-gray-900">
+              {/* Top Navigation Bar */}
+              <TopNavBar />
+              {/* Page Content */}
+              <main className="p-6 bg-b">{children}</main>
+            </div>
           </div>
-        </div>
+        </Providers>
       </body>
     </html>
   );

@@ -9,14 +9,13 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import React from "react";
-
 export default function LeftNavBar() {
   const pathname = usePathname();
+
   return (
-    <nav className="w-56 bg-slate-50 text-gray-500 fixed h-full p-4">
+    <nav className="w-56 bg-slate-50 dark:bg-gray-950 text-gray-500 dark:text-gray-300 fixed h-full p-4">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-blue-900 text-center">
+        <h1 className="text-2xl font-bold text-blue-900 dark:text-white mt-1">
           Namaan Insights
         </h1>
       </div>
@@ -26,8 +25,8 @@ export default function LeftNavBar() {
             href="/"
             className={`flex items-center p-4 font-bold ${
               pathname === "/"
-                ? "text-blue-500"
-                : "text-gray-600 hover:text-blue-500"
+                ? "text-blue-500 dark:text-blue-400"
+                : "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
             }`}
           >
             <FaHome className="mr-2" />
@@ -37,8 +36,8 @@ export default function LeftNavBar() {
             href="/stocks"
             className={`flex items-center p-4 font-bold ${
               pathname === "/stocks"
-                ? "text-blue-500"
-                : "text-gray-600 hover:text-blue-500"
+                ? "text-blue-500 dark:text-blue-400"
+                : "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
             }`}
           >
             <FaChartLine className="mr-2" />
@@ -48,8 +47,8 @@ export default function LeftNavBar() {
             href="/analysis"
             className={`flex items-center p-4 font-bold ${
               pathname === "/analysis"
-                ? "text-blue-500"
-                : "text-gray-600 hover:text-blue-500"
+                ? "text-blue-500 dark:text-blue-400"
+                : "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
             }`}
           >
             <FaChartBar className="mr-2" />
@@ -59,8 +58,8 @@ export default function LeftNavBar() {
             href="/news"
             className={`flex items-center p-4 font-bold ${
               pathname === "/news"
-                ? "text-blue-500"
-                : "text-gray-600 hover:text-blue-500"
+                ? "text-blue-500 dark:text-blue-400"
+                : "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
             }`}
           >
             <FaNewspaper className="mr-2" />
@@ -70,8 +69,8 @@ export default function LeftNavBar() {
             href="/settings"
             className={`flex items-center p-4 font-bold ${
               pathname === "/settings"
-                ? "text-blue-500"
-                : "text-gray-600 hover:text-blue-500"
+                ? "text-blue-500 dark:text-blue-400"
+                : "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
             }`}
           >
             <FaCog className="mr-2" />

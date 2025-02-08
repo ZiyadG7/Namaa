@@ -1,6 +1,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import { FaBell, FaUserCircle } from "react-icons/fa";
+import ThemeSwitch from "./ThemeSwitch";
 
 export default function TopHeader() {
   const pathname = usePathname();
@@ -23,18 +24,19 @@ export default function TopHeader() {
   };
 
   return (
-    <header className="bg-slate-50 shadow-sm sticky top-0 z-10">
-      <div className="flex items-center justify-between px-6 py-4">
+    <header className="bg-slate-50 dark:bg-gray-950 shadow-sm sticky top-0 z-10">
+      <div className="flex items-center justify-between px-8 py-4">
         <div className="flex items-center">
-          <h2 className="text-xl font-semibold text-blue-900">
+          <h2 className="text-xl font-semibold text-blue-900 dark:text-white">
             {getPageTitle()}
           </h2>
         </div>
         <div className="flex items-center space-x-4">
-          <button className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-blue-500">
+          <ThemeSwitch></ThemeSwitch>
+          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">
             <FaBell className="h-5 w-5" />
           </button>
-          <button className="p-2 hover:bg-gray-100 rounded-full text-gray-600 hover:text-blue-500">
+          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">
             <FaUserCircle className="h-6 w-6" />
           </button>
         </div>

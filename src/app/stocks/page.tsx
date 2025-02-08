@@ -58,28 +58,6 @@ export default function CompaniesPage() {
         changeToday: "-0.3%",
         category: "notFollowed",
       },
-      {
-        id: "AMZN",
-        name: "Amazon.com Inc.",
-        marketCap: "$1.3T",
-        balance: "$64B",
-        price: "$128.45",
-        change30D: "+6.7%",
-        change1Y: "+35.2%",
-        changeToday: "+2.1%",
-        category: "notFollowed",
-      },
-      {
-        id: "Company",
-        name: "company.com Inc.",
-        marketCap: "$1.9T",
-        balance: "$640B",
-        price: "$178.25",
-        change30D: "+9.7%",
-        change1Y: "+39.6%",
-        changeToday: "+0.1%",
-        category: "notFollowed",
-      },
     ];
   };
 
@@ -106,81 +84,37 @@ export default function CompaniesPage() {
   };
 
   const renderTable = (stocks: Company[], title: string) => (
-    <div className="mb-8 bg">
-      <h2 className="text-xl font-semibold mb-4 text-blue-900 underline decoration-blue-100 decoration-2 underline-offset-8">
+    <div className="mb-8">
+      <h2 className="text-xl font-semibold mb-4 text-blue-900 dark:text-blue-300 underline decoration-blue-300 dark:decoration-gray-600 decoration-2 underline-offset-8">
         {title}
       </h2>
-      <div className="overflow-x-auto rounded-lg shadow-md">
-        <table className="min-w-full divide-y divide-gray-300">
-          <thead className="bg-white-100">
+      <div className="overflow-x-auto rounded-lg shadow-md bg-white dark:bg-gray-00">
+        <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+          <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left p-4 font-bold text-gray-500 tracking-wider">
-                Name
-              </th>
-              <th className="px-6 py-3 text-left p-4 font-bold text-gray-500 tracking-wider">
-                Market Cap
-              </th>
-              <th className="px-6 py-3 text-left p-4 font-bold text-gray-500 tracking-wider">
-                Balance
-              </th>
-              <th className="px-6 py-3 text-left p-4 font-bold text-gray-500 tracking-wider">
-                Price
-              </th>
-              <th className="px-6 py-3 text-left p-4 font-bold text-gray-500 tracking-wider">
-                30D
-              </th>
-              <th className="px-6 py-3 text-left p-4 font-bold text-gray-500 tracking-wider">
-                1Y
-              </th>
-              <th className="px-6 py-3 text-left p-4 font-bold text-gray-500 tracking-wider">
-                Today
-              </th>
+              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">Name</th>
+              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">Market Cap</th>
+              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">Balance</th>
+              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">Price</th>
+              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">30D</th>
+              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">1Y</th>
+              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">Today</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
             {stocks.map((company) => (
               <tr
                 key={company.id}
                 onClick={() => handleRowClick(company.id)}
-                className="hover:bg-gray-200 cursor-pointer transition-colors"
+                className="hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-colors"
               >
-                <td className="px-6 py-4 whitespace-nowrap font-medium">
-                  {company.name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {company.marketCap}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {company.balance}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">{company.price}</td>
-                <td
-                  className={`px-6 py-4 whitespace-nowrap ${
-                    company.change30D.startsWith("+")
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {company.change30D}
-                </td>
-                <td
-                  className={`px-6 py-4 whitespace-nowrap ${
-                    company.change1Y.startsWith("+")
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {company.change1Y}
-                </td>
-                <td
-                  className={`px-6 py-4 whitespace-nowrap ${
-                    company.changeToday.startsWith("+")
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {company.changeToday}
-                </td>
+                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">{company.name}</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">{company.marketCap}</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">{company.balance}</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">{company.price}</td>
+                <td className={`px-6 py-4 ${company.change30D.startsWith("+") ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>{company.change30D}</td>
+                <td className={`px-6 py-4 ${company.change1Y.startsWith("+") ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>{company.change1Y}</td>
+                <td className={`px-6 py-4 ${company.changeToday.startsWith("+") ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>{company.changeToday}</td>
               </tr>
             ))}
           </tbody>
@@ -189,11 +123,11 @@ export default function CompaniesPage() {
     </div>
   );
 
-  if (loading) return <Loading></Loading>;
-  if (error) return <div className="p-4 text-center text-red-500">{error}</div>;
+  if (loading) return <Loading />;
+  if (error) return <div className="p-4 text-center text-red-500 dark:text-red-400">{error}</div>;
 
   return (
-    <div className="p-4 bg-">
+    <div className="p-4 bg-slate-100 dark:bg-gray-900 min-h-screen">
       {renderTable(followed, "Followed Stocks")}
       {renderTable(notFollowed, "Stocks")}
     </div>

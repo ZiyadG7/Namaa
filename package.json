@@ -14,6 +14,7 @@
     "@mui/material": "^6.4.2",
     "namaa": "file:",
     "next": "15.1.6",
+    "next-themes": "^0.4.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.4.0"
