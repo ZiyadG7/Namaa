@@ -1,7 +1,7 @@
 import React from 'react'
-
-export default function Analysis() {
+export default  function Analysis() {
   return (
-    <div>Analysis</div>
+  <div>Analysis</div>
+  
   )
 }
