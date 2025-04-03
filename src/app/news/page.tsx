@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchStockNews } from "@/utils/fetchStockNews";
-import { saveNewsToSupabase } from "../../utils/saveNewsToSupabase";
 import { supabase } from "@/lib/supabaseClient";
 import Loading from "../Components/Loading";
 
@@ -41,16 +39,19 @@ export default function News() {
     async function getNews() {
       setLoading(true);
 
-      const freshNews = await fetchStockNews();
-      await saveNewsToSupabase(freshNews);
-
-      const { data: news } = await supabase
+      // Fetch news from Supabase
+      const { data: news, error } = await supabase
         .from("news_articles")
         .select("*")
         .order("published_at", { ascending: false })
         .limit(50);
 
-      setNews(news || []);
+      if (error) {
+        console.error("Error fetching news from Supabase:", error);
+      } else {
+        setNews(news || []);
+      }
+
       setLoading(false);
     }
 
