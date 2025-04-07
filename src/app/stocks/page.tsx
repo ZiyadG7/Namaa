@@ -26,7 +26,7 @@ export default function CompaniesPage() {
   useEffect(() => {
     const fetchStocksData = async () => {
       try {
-        const response = await fetch("/api/stocks");
+        const response = await fetch("/api/fetchStocks");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -42,7 +42,7 @@ export default function CompaniesPage() {
             total_assets: 0,
             total_debt: 0,
           };
-          
+
           // Calculate changes
           const change30D = calculatePriceChange(stock.prices, 30);
           const change1Y = calculatePriceChange(stock.prices, 365);
