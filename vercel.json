@@ -2,10 +2,7 @@
   "crons": [
     {
       "path": "/api/updateNews",
-      "schedule": "*/15 * * * *",
-      "headers": {
-        "Authorization": "Bearer CRON_SECRET" 
-      }
+      "schedule": "*/15 * * * *"
     }
   ]
 }

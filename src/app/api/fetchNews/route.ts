@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const apiToken = process.env.MARKETAUX_API_TOKEN;
-  const url = `https://api.marketaux.com/v1/news/all?countries=sa&filter_entities=true&api_token=4ZXe9ob6pTZl9XdbAjNTxftXqQlmAkUCu8bpWFWt`;
+  const url = `https://api.marketaux.com/v1/news/all?countries=sa&filter_entities=true&api_token=${apiToken}`;
   try {
     const response = await fetch(url);
     const { data } = await response.json();
