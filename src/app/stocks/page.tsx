@@ -34,7 +34,7 @@ export default function CompaniesPage() {
         const stocksData = await response.json();
 
         const companies = stocksData.map((stock: any) => {
-          const latestPrice = stock.latest_price || {
+          const latestPrices = stock.latest_prices || {
             share_price: 0,
             market_cap: 0,
           };
@@ -44,18 +44,18 @@ export default function CompaniesPage() {
           };
 
           // Calculate changes
-          const change30D = calculatePriceChange(stock.prices, 30);
-          const change1Y = calculatePriceChange(stock.prices, 365);
-          const changeToday = calculatePriceChange(stock.prices, 1);
+          const change30D = calculatePriceChange(latestPrices.price, stock.oneMonthAgoPrice);
+          const change1Y = calculatePriceChange(stock.latest_price, stock.oneYearAgoPrice);
+          const changeToday = calculatePriceChange(latestPrices.price, latestPrices.open);
 
           return {
             id: stock.ticker,
             name: stock.company_name,
-            marketCap: formatCurrency(latestPrice.market_cap),
+            marketCap: formatCurrency(latestPrices.marketcap),
             balance: formatCurrency(
               financials.total_assets - financials.total_debt
             ),
-            price: formatCurrency(latestPrice.share_price),
+            price: formatCurrency(latestPrices.price),
             change30D,
             change1Y,
             changeToday,
@@ -81,21 +81,13 @@ export default function CompaniesPage() {
   }, []);
 
   // Helper function to calculate price change over N days
-  const calculatePriceChange = (prices: any[], days: number): string => {
-    if (!prices || prices.length < 2) return "0%";
+  const calculatePriceChange = (strLatestPrice: string, strHistoricalPrice: string): string => {
+    const latestPrice = Number.parseFloat(strLatestPrice);
+    const historicalPrice = Number.parseFloat(strHistoricalPrice);
 
-    const latestPrice = prices[0]?.share_price;
-    if (!latestPrice) return "0%";
+    // console.log(latestPrice)
 
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() - days);
-
-    const historicalPrice = prices.find((p: any) => {
-      const priceDate = new Date(p.date);
-      return priceDate <= targetDate;
-    })?.share_price;
-
-    if (!historicalPrice) return "0%";
+    if (!strLatestPrice || !strHistoricalPrice) return '0%';
 
     const change = ((latestPrice - historicalPrice) / historicalPrice) * 100;
     return change >= 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;

@@ -1,16 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 
-async function getStockPriceByDate(date: Date) {
-    const { data } = await supabase
-        .from("stock_prices")
-        .select("stock_id, share_price")
-        .eq("date", date.toISOString().split("T")[0]) 
-
-    console.log(date.toISOString().split("T")[0])
-    return data;
-}
-
 export async function GET() {
   try {
     const { data: stocks, error } = await supabase
@@ -24,16 +14,30 @@ export async function GET() {
         shares_outstanding,
         company_name_arabic,
         sector_arabic,
+        prices:stock_prices(
+          price_id,
+          share_price,
+          market_cap,
+          date
+        ),
         financials:financials(
           financial_id,
           total_assets,
           total_debt,
           shareholders_equity,
           date
+        ),
+        metrics:stock_metrics(
+          metric_id,
+          return_on_equity,
+          eps,
+          date
         )
       `
       )
+      .limit(1, { foreignTable: "prices" })
       .limit(1, { foreignTable: "financials" })
+      .limit(1, { foreignTable: "metrics" });
 
     if (error) {
       console.error("Supabase error:", error);
@@ -47,31 +51,22 @@ export async function GET() {
       return NextResponse.json({ error: "No stocks found" }, { status: 404 });
     }
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/fetchCurrentPrices`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    });
-        
-    const latestPrices = await res.json();
-
-    // Calculate the date one year/month ago
-    let oneYearAgoDate = new Date();
-    let oneMonthAgoDate = new Date();
-    oneYearAgoDate.setFullYear(oneYearAgoDate.getFullYear() - 1); 
-    oneMonthAgoDate.setMonth(oneMonthAgoDate.getMonth() - 1)
-
-    const oneYearAgoPrices = await getStockPriceByDate(oneYearAgoDate)
-    const oneMonthAgoPrices  = await getStockPriceByDate(oneMonthAgoDate)
+    // Fetch historical price data for change calculations
+    const { data: historicalPrices } = await supabase
+      .from("stock_price")
+      .select("stock_id, share_price, date")
+      .order("date", { ascending: false })
+      .limit(365); // Get 1 year of data for calculations
 
     // Transform the data for the frontend
     const transformedStocks = stocks.map((stock) => {
+      const latestPrice = stock.prices?.[0];
       const latestFinancial = stock.financials?.[0];
+      const latestMetric = stock.metrics?.[0];
 
-      const oneYearAgoPrice =
-        oneYearAgoPrices?.find((p) => p.stock_id === stock.stock_id)?.share_price || null;
-        
-    const oneMonthAgoPrice =
-        oneMonthAgoPrices?.find((p) => p.stock_id == stock.stock_id)?.share_price || null;
+      // Get all prices for this stock
+      const stockPrices =
+        historicalPrices?.filter((p) => p.stock_id === stock.stock_id) || [];
 
       return {
         stock_id: stock.stock_id,
@@ -80,10 +75,10 @@ export async function GET() {
         company_name_arabic: stock.company_name_arabic,
         sector: stock.sector,
         sector_arabic: stock.sector_arabic,
-        oneYearAgoPrice: oneYearAgoPrice,
-        oneMonthAgoPrice: oneMonthAgoPrice,
-        latest_prices: latestPrices[stock.ticker],
+        prices: stockPrices,
+        latest_price: latestPrice,
         latest_financial: latestFinancial,
+        latest_metric: latestMetric,
       };
     });
 
