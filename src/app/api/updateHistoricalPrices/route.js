@@ -44,7 +44,7 @@ export async function GET() {
     // console.log(currentDate)
 
     while (date < currentDate) {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/updateHistoricalPrices`, {
+        const res = await fetch(`${process.env.SITE_URL}/api/updateHistoricalPrices`, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({ date: `=DATE(${date.getFullYear()}, ${date.getMonth()+1}, ${date.getDay()})` }),

@@ -47,7 +47,7 @@ export async function GET() {
       return NextResponse.json({ error: "No stocks found" }, { status: 404 });
     }
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/fetchCurrentPrices`, {
+    const res = await fetch(`${process.env.SITE_URL}/api/fetchCurrentPrices`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
