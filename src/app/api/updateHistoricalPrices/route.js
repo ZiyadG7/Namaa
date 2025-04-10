@@ -6,7 +6,7 @@ export async function POST(request) {
   const body = await request.formData();
   const date = body.get("date");
 
-  const response = await fetch("https://script.google.com/macros/s/AKfycbzzXb_RflEnbLFKe7S0HDtkf7PD7z8XgXrDpyfNlLb5VJFKv78xJ4t1Rq70pe8BqpmU_Q/exec", {
+  const response = await fetch(`https://script.google.com/macros/s/${process.env.HISTORICAL_PRICES_API_TOKEN}/exec`, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -37,9 +37,9 @@ export async function GET() {
     console.log(`📌 Found ${stocks.length} tickers`);
     let errorCount = 0; // Counter for errors
 
-    const currentDate = new Date();
-    let date = new Date('2025-03-08T12:00:00');
-    currentDate.setDate(currentDate.getDate() - 8);
+    let currentDate = new Date();
+    let date = new Date('2025-03-28T12:00:00');
+    // currentDate = new Date('2025-03-29T12:00:00');
 
     // console.log(currentDate)
 
@@ -56,7 +56,7 @@ export async function GET() {
         for (const stock of stocks) {
             const { stock_id, ticker } = stock;
     
-            await supabase.from("stock_prices").insert([
+            const { data, error } = await supabase.from("stock_prices").insert([
                 {
                     stock_id: stock_id,
                     share_price: prices[ticker].price ?? "N/A",
@@ -64,6 +64,11 @@ export async function GET() {
                 },
             ]);
             
+            if (error) {
+              console.error("Error inserting:", error.message, date, stock.ticker);
+            } else {
+              console.log("Inserted:", date, stock.ticker);
+            }
       
             console.log(`✅ Inserted stock prices for ${ticker} date ${date}`);
         }    

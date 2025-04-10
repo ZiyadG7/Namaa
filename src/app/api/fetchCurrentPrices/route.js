@@ -1,7 +1,7 @@
 export async function POST(request) {
     const body = await request.formData();
-      
-    const response = await fetch("https://script.google.com/macros/s/AKfycbwdr4OScwOHAqlknvITo6mqjcAZ6mdhRHGgze6RNGUd-oA9OYHqGh-xKvN_p0Fetc6Cfw/exec", {
+
+    const response = await fetch(`https://script.google.com/macros/s/${process.env.CURRENT_PRICES_API_TOKEN}/exec`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
