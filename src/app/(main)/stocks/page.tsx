@@ -3,6 +3,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 import Loading from "../Components/Loading";
 
 interface Company {
@@ -57,7 +58,9 @@ export default function CompaniesPage() {
             ticker: stock.ticker,
             name: stock.company_name,
             marketCap: formatCurrency(latestPrice.market_cap),
-            balance: formatCurrency(financials.total_assets - financials.total_debt),
+            balance: formatCurrency(
+              financials.total_assets - financials.total_debt
+            ),
             price: formatCurrency(latestPrice.share_price),
             change30D,
             change1Y,
@@ -67,8 +70,12 @@ export default function CompaniesPage() {
           };
         });
 
-        setFollowed(companies.filter((c: Company) => c.category === "followed"));
-        setNotFollowed(companies.filter((c: Company) => c.category === "notFollowed"));
+        setFollowed(
+          companies.filter((c: Company) => c.category === "followed")
+        );
+        setNotFollowed(
+          companies.filter((c: Company) => c.category === "notFollowed")
+        );
         setLoading(false);
       } catch (err) {
         console.error("Fetch error:", err);
@@ -116,7 +123,7 @@ export default function CompaniesPage() {
 
   // Redirect to the company details page
   const handleRowClick = (companyId: number) => {
-    router.push(`/stocks/${companyId}`);
+    router.push(`/analysis/${companyId}`);
   };
 
   // Toggle follow/unfollow state by calling respective API routes.
@@ -138,7 +145,10 @@ export default function CompaniesPage() {
 
         // Update local state: remove from followed list and add to notFollowed.
         setFollowed((prev) => prev.filter((c) => c.id !== company.id));
-        setNotFollowed((prev) => [...prev, { ...company, category: "notFollowed" }]);
+        setNotFollowed((prev) => [
+          ...prev,
+          { ...company, category: "notFollowed" },
+        ]);
       } else {
         // Follow action
         const response = await fetch("/api/followStock", {
@@ -172,14 +182,30 @@ export default function CompaniesPage() {
         <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
           <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">Name</th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">Market Cap</th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">Balance</th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">Price</th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">30D</th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">1Y</th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">Today</th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">Action</th>
+              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
+                Name
+              </th>
+              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
+                Market Cap
+              </th>
+              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
+                Balance
+              </th>
+              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
+                Price
+              </th>
+              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
+                30D
+              </th>
+              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
+                1Y
+              </th>
+              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
+                Today
+              </th>
+              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
@@ -189,10 +215,18 @@ export default function CompaniesPage() {
                 onClick={() => handleRowClick(company.id)}
                 className="hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-colors"
               >
-                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">{company.name}</td>
-                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">{company.marketCap}</td>
-                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">{company.balance}</td>
-                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">{company.price}</td>
+                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
+                  {company.name}
+                </td>
+                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
+                  {company.marketCap}
+                </td>
+                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
+                  {company.balance}
+                </td>
+                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
+                  {company.price}
+                </td>
                 <td
                   className={`px-6 py-4 ${
                     company.change30D.startsWith("+")
@@ -222,19 +256,19 @@ export default function CompaniesPage() {
                 </td>
                 <td className="px-6 py-4">
                   {/* Prevent the row click by stopping propagation */}
-                    <button
+                  <button
                     onClick={(e) => {
-                    e.stopPropagation();
-                    handleFollowToggle(company);
+                      e.stopPropagation();
+                      handleFollowToggle(company);
                     }}
-                    className={
-                    company.category === "followed"
-                        ? "px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-800 transition-colors"
-                        : "px-3 py-1 rounded bg-green-500 text-white hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-800 transition-colors"
-                    }
-                    >
-                    {company.category === "followed" ? "Unfollow" : "Follow"}
-                    </button>
+                    className="text-2xl transition-colors"
+                  >
+                    {company.category === "followed" ? (
+                      <FaHeart className="text-red-500 hover:text-red-600" />
+                    ) : (
+                      <FaRegHeart className="text-gray-400 hover:text-pink-500" />
+                    )}
+                  </button>
                 </td>
               </tr>
             ))}

@@ -5,6 +5,7 @@ import {
   FaChartBar,
   FaNewspaper,
   FaCog,
+  FaRobot,
 } from "react-icons/fa";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -46,7 +47,7 @@ export default function LeftNavBar() {
           <Link
             href="/analysis"
             className={`flex items-center p-4 font-bold ${
-              pathname === "/analysis"
+              pathname === "/analysis" || pathname.startsWith("/analysis/")
                 ? "text-blue-500 dark:text-blue-400"
                 : "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
             }`}
@@ -75,6 +76,17 @@ export default function LeftNavBar() {
           >
             <FaCog className="mr-2" />
             Settings
+          </Link>
+          <Link
+            href="/assistant"
+            className={`flex items-center p-4 font-bold ${
+              pathname === "/assistant"
+                ? "text-blue-500 dark:text-blue-400"
+                : "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
+            }`}
+          >
+            <FaRobot className="mr-2" />
+            AI Assistant
           </Link>
         </div>
       </div>
