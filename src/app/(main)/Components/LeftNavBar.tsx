@@ -6,13 +6,15 @@ import {
   FaNewspaper,
   FaCog,
   FaRobot,
+  FaInfoCircle,
+  FaRoad
 } from "react-icons/fa";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export default function LeftNavBar() {
   const pathname = usePathname();
-
+  
   return (
     <nav className="w-56 bg-slate-50 dark:bg-gray-950 text-gray-500 dark:text-gray-300 fixed h-full p-4">
       <div className="mb-8">
@@ -36,7 +38,7 @@ export default function LeftNavBar() {
           <Link
             href="/stocks"
             className={`flex items-center p-4 font-bold ${
-              pathname === "/stocks"
+              pathname === "/stocks" || pathname.startsWith("/stocks/")
                 ? "text-blue-500 dark:text-blue-400"
                 : "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
             }`}
@@ -58,7 +60,7 @@ export default function LeftNavBar() {
           <Link
             href="/news"
             className={`flex items-center p-4 font-bold ${
-              pathname === "/news"
+              pathname === "/news" || pathname.startsWith("/news/")
                 ? "text-blue-500 dark:text-blue-400"
                 : "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
             }`}
@@ -69,7 +71,7 @@ export default function LeftNavBar() {
           <Link
             href="/settings"
             className={`flex items-center p-4 font-bold ${
-              pathname === "/settings"
+              pathname === "/settings" || pathname.startsWith("/settings/")
                 ? "text-blue-500 dark:text-blue-400"
                 : "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
             }`}
@@ -80,13 +82,35 @@ export default function LeftNavBar() {
           <Link
             href="/assistant"
             className={`flex items-center p-4 font-bold ${
-              pathname === "/assistant"
+              pathname === "/assistant" || pathname.startsWith("/assistant/")
                 ? "text-blue-500 dark:text-blue-400"
                 : "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
             }`}
           >
             <FaRobot className="mr-2" />
             AI Assistant
+          </Link>
+          <Link
+            href="/roadmap"
+            className={`flex items-center p-4 font-bold ${
+              pathname === "/roadmap" || pathname.startsWith("/roadmap/")
+                ? "text-blue-500 dark:text-blue-400"
+                : "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
+            }`}
+          >
+            <FaRoad className="mr-2" />
+            Roadmap
+          </Link>
+          <Link
+            href="/home"
+            className={`flex items-center p-4 font-bold ${
+              pathname === "/home" || pathname.startsWith("/home/")
+                ? "text-blue-500 dark:text-blue-400"
+                : "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
+            }`}
+          >
+            <FaInfoCircle className="mr-2" />
+            About
           </Link>
         </div>
       </div>
