@@ -1,0 +1,226 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Loading from "../Components/Loading";
+
+// temp data
+const mockPortfolio = [
+  {
+    ticker: "ARAMCO",
+    company_name: "Saudi Aramco",
+    sector: "Energy",
+    share_price: 32.5,
+    market_cap: 2000000000000,
+    total_assets: 800000000000,
+    total_debt: 100000000000,
+  },
+  {
+    ticker: "SABIC",
+    company_name: "SABIC",
+    sector: "Materials",
+    share_price: 90.75,
+    market_cap: 300000000000,
+    total_assets: 120000000000,
+    total_debt: 40000000000,
+  },
+  {
+    ticker: "STC",
+    company_name: "Saudi Telecom Company",
+    sector: "Telecommunications",
+    share_price: 130.0,
+    market_cap: 250000000000,
+    total_assets: 100000000000,
+    total_debt: 20000000000,
+  },
+  {
+    ticker: "ALRAJHI",
+    company_name: "Al Rajhi Bank",
+    sector: "Financials",
+    share_price: 95.2,
+    market_cap: 400000000000,
+    total_assets: 300000000000,
+    total_debt: 150000000000,
+  },
+];
+
+export default function AssistantPage() {
+  const [portfolio, setPortfolio] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [chatMode, setChatMode] = useState(false);
+  const [chatHistory, setChatHistory] = useState<
+    { role: "user" | "ai"; content: string }[]
+  >([]);
+  const [userInput, setUserInput] = useState("");
+  const [actionResponse, setActionResponse] = useState<{
+    action: string;
+    content: string;
+  } | null>(null);
+
+  useEffect(() => {
+    // will replace with users data from subabase
+    setPortfolio(mockPortfolio);
+  }, []);
+
+  const handleAction = async (action: string, customPrompt?: string) => {
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, customPrompt, portfolio }),
+      });
+
+      const data = await res.json();
+
+      if (action !== "custom") {
+        setActionResponse({
+          action,
+          content: data.reply || "No reply received.",
+        });
+      } else {
+        setChatHistory((prev) => [
+          ...prev,
+          { role: "ai", content: data.reply || "No reply received." },
+        ]);
+      }
+    } catch (err) {
+      console.error(err);
+      if (action !== "custom") {
+        setActionResponse({
+          action,
+          content: "Something went wrong.",
+        });
+      } else {
+        setChatHistory((prev) => [
+          ...prev,
+          { role: "ai", content: "Failed to contact assistant." },
+        ]);
+      }
+    }
+
+    setLoading(false);
+  };
+
+  const handleSubmitChat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userInput.trim()) return;
+
+    const newMsg = { role: "user" as const, content: userInput };
+    setChatHistory((prev) => [...prev, newMsg]);
+    setUserInput("");
+    await handleAction("custom", newMsg.content);
+  };
+
+  return (
+    <div className="p-8 bg-slate-100 dark:bg-gray-900 min-h-screen text-gray-800 dark:text-gray-200">
+      <h1 className="text-3xl font-bold mb-8 text-center text-blue-800 dark:text-blue-300">
+        AI Investment Assistant
+      </h1>
+      {/* Portfolio Table */}
+      <div className="overflow-x-auto mb-8 shadow rounded-lg">
+        <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg">
+          <thead className="bg-gray-100 dark:bg-gray-700">
+            <tr>
+              <th className="px-4 py-2">Company</th>
+              <th className="px-4 py-2">Sector</th>
+              <th className="px-4 py-2">Price</th>
+              <th className="px-4 py-2">Market Cap</th>
+            </tr>
+          </thead>
+          <tbody>
+            {portfolio.map((item, index) => (
+              <tr
+                key={index}
+                className="text-center border-t dark:border-gray-600"
+              >
+                <td className="px-4 py-2">{item.company_name}</td>
+                <td className="px-4 py-2">{item.sector}</td>
+                <td className="px-4 py-2">${item.share_price}</td>
+                <td className="px-4 py-2">
+                  ${(item.market_cap / 1e9).toFixed(2)}B
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Result Panel */}
+      {(loading || actionResponse) && (
+        <div className="w-full mx-auto mb-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          {loading ? (
+            <div className="flex justify-center items-center h-24">
+              <Loading />
+            </div>
+          ) : actionResponse ? (
+            <>
+              <h2 className="text-2xl font-bold mb-4 text-blue-600 dark:text-blue-400 capitalize">
+                {actionResponse.action}
+              </h2>
+              <div className="space-y-3 leading-relaxed text-gray-800 dark:text-gray-200">
+                {actionResponse.content.split("\n").map((line, idx) => (
+                  <p key={idx}>{line}</p>
+                ))}
+              </div>
+            </>
+          ) : null}
+        </div>
+      )}
+
+      <div className="flex flex-wrap justify-center gap-4 mb-8">
+        <Button onClick={() => handleAction("summarize")}>Summarize</Button>
+        <Button onClick={() => handleAction("evaluate")}>Evaluate</Button>
+        <Button onClick={() => handleAction("suggest")}>
+          Make Suggestions
+        </Button>
+        <Button variant="outline" onClick={() => setChatMode((prev) => !prev)}>
+          {chatMode ? "Close Chat" : "Chat with AI"}
+        </Button>
+      </div>
+
+      {/* Chat  */}
+      {chatMode && (
+        <div className="w-full mx-auto">
+          <h2 className="text-xl font-semibold mb-4 text-center">
+            Ask AI Anything
+          </h2>
+
+          <div className="bg-white dark:bg-gray-800 p-4 rounded shadow h-[300px] overflow-y-auto space-y-3 mb-4">
+            {chatHistory.length === 0 && (
+              <p className="text-gray-400 dark:text-gray-500 text-center">
+                Ask a question and get real-time advice.
+              </p>
+            )}
+            {chatHistory.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`max-w-[80%] px-4 py-2 rounded-lg ${
+                  msg.role === "user"
+                    ? "bg-blue-100 dark:bg-blue-900 self-end ml-auto text-right"
+                    : "bg-gray-200 dark:bg-gray-700"
+                }`}
+              >
+                <p className="whitespace-pre-wrap">{msg.content}</p>
+              </div>
+            ))}
+            {loading && <p className="text-blue-500">AI is thinking...</p>}
+          </div>
+          <form onSubmit={handleSubmitChat} className="flex items-center gap-2">
+            <Input
+              placeholder="Ask something like 'Should I diversify?'"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              className="flex-1"
+            />
+            <Button type="submit" disabled={!userInput.trim() || loading}>
+              Send
+            </Button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
