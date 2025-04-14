@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from '@/utils/supabase/server';
 import yahooFinance from "yahoo-finance2";
 
 // ✅ Export named GET function
 export async function GET(req: NextRequest) {
   try {
+    const supabase = await createClient();
+    
     let { data: stocks, error } = await supabase.from("stocks").select("stock_id, ticker");
 
     if (error || !stocks) {

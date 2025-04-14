@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from '@/utils/supabase/server';
 
 
 export async function POST(request) {
@@ -27,6 +27,9 @@ export async function POST(request) {
 
 
 export async function GET() {
+  try {
+    const supabase = await createClient();
+  
     let { data: stocks, error } = await supabase.from("stocks").select("stock_id, ticker");
     
         if (error || !stocks) {
@@ -38,7 +41,7 @@ export async function GET() {
     let errorCount = 0; // Counter for errors
 
     let currentDate = new Date();
-    let date = new Date('2025-03-28T12:00:00');
+    let date = new Date('2024-04-15T12:00:00');
     // currentDate = new Date('2025-03-29T12:00:00');
 
     // console.log(currentDate)
@@ -74,5 +77,8 @@ export async function GET() {
         }    
         date.setDate(date.getDate() + 1)
     }
+    } catch (err) {
+        return NextResponse.json({ error: err.message || 'Something went wrong' }, { status: 500 })
+      }
 
 }
