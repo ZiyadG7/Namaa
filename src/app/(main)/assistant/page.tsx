@@ -173,6 +173,7 @@ export default function AssistantPage() {
       <div className="flex flex-wrap justify-center gap-4 mb-8">
         <Button onClick={() => handleAction("summarize")}>Summarize</Button>
         <Button onClick={() => handleAction("evaluate")}>Evaluate</Button>
+        <Button onClick={() => handleAction("risk")}>Risks</Button>
         <Button onClick={() => handleAction("suggest")}>
           Make Suggestions
         </Button>

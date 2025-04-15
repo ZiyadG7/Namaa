@@ -26,7 +26,11 @@ export default function CompaniesPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch stocks data on mount
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Company | null;
+    direction: "asc" | "desc";
+  }>({ key: null, direction: "asc" });
+
   useEffect(() => {
     const fetchStocksData = async () => {
       try {
@@ -37,7 +41,6 @@ export default function CompaniesPage() {
 
         const stocksData = await response.json();
 
-        // Map and calculate additional data for each stock
         const companies: Company[] = stocksData.map((stock: any) => {
           const latestPrice = stock.latest_price || {
             share_price: 0,
@@ -48,7 +51,6 @@ export default function CompaniesPage() {
             total_debt: 0,
           };
 
-          // Calculate changes over different periods
           const change30D = calculatePriceChange(stock.prices, 30);
           const change1Y = calculatePriceChange(stock.prices, 365);
           const changeToday = calculatePriceChange(stock.prices, 1);
@@ -65,17 +67,12 @@ export default function CompaniesPage() {
             change30D,
             change1Y,
             changeToday,
-            // Assumes your API returns an `is_followed` flag for each stock.
             category: stock.is_followed ? "followed" : "notFollowed",
           };
         });
 
-        setFollowed(
-          companies.filter((c: Company) => c.category === "followed")
-        );
-        setNotFollowed(
-          companies.filter((c: Company) => c.category === "notFollowed")
-        );
+        setFollowed(companies.filter((c) => c.category === "followed"));
+        setNotFollowed(companies.filter((c) => c.category === "notFollowed"));
         setLoading(false);
       } catch (err) {
         console.error("Fetch error:", err);
@@ -87,7 +84,6 @@ export default function CompaniesPage() {
     fetchStocksData();
   }, []);
 
-  // Helper function to calculate price change over N days
   const calculatePriceChange = (prices: any[], days: number): string => {
     if (!prices || prices.length < 2) return "0%";
 
@@ -97,7 +93,6 @@ export default function CompaniesPage() {
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() - days);
 
-    // Find the first price entry older than or equal to the target date
     const historicalPrice = prices.find((p: any) => {
       const priceDate = new Date(p.date);
       return priceDate <= targetDate;
@@ -121,49 +116,36 @@ export default function CompaniesPage() {
     }).format(value);
   };
 
-  // Redirect to the company details page
   const handleRowClick = (companyId: number) => {
     router.push(`/analysis/${companyId}`);
   };
 
-  // Toggle follow/unfollow state by calling respective API routes.
   const handleFollowToggle = async (company: Company) => {
     try {
+      const endpoint =
+        company.category === "followed"
+          ? "/api/unfollowStock"
+          : "/api/followStock";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ stock_id: company.id }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update follow status");
+      }
+
       if (company.category === "followed") {
-        // Unfollow action
-        const response = await fetch("/api/unfollowStock", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ stock_id: company.id }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to unfollow");
-        }
-
-        // Update local state: remove from followed list and add to notFollowed.
         setFollowed((prev) => prev.filter((c) => c.id !== company.id));
         setNotFollowed((prev) => [
           ...prev,
           { ...company, category: "notFollowed" },
         ]);
       } else {
-        // Follow action
-        const response = await fetch("/api/followStock", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ stock_id: company.id }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to follow");
-        }
-
-        // Update local state: remove from notFollowed and add to followed.
         setNotFollowed((prev) => prev.filter((c) => c.id !== company.id));
         setFollowed((prev) => [...prev, { ...company, category: "followed" }]);
       }
@@ -172,15 +154,61 @@ export default function CompaniesPage() {
     }
   };
 
-  // Filter stocks based on the search query
-  const filteredFollowed = followed.filter((company) =>
-    company.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const handleSort = (key: keyof Company) => {
+    setSortConfig((prev) =>
+      prev.key === key
+        ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
+        : { key, direction: "asc" }
+    );
+  };
+
+  const renderSortArrow = (key: keyof Company) => {
+    if (sortConfig.key !== key) return null;
+    return sortConfig.direction === "asc" ? "↑" : "↓";
+  };
+
+  const sortCompanies = (companies: Company[]) => {
+    const { key, direction } = sortConfig;
+    if (!key) return companies;
+
+    return [...companies].sort((a, b) => {
+      const aVal = a[key] || "";
+      const bVal = b[key] || "";
+
+      const isNumeric =
+        !isNaN(Number(aVal.toString().replace(/[^0-9.-]+/g, ""))) &&
+        !isNaN(Number(bVal.toString().replace(/[^0-9.-]+/g, "")));
+
+      const aNum = isNumeric
+        ? Number(aVal.toString().replace(/[^0-9.-]+/g, ""))
+        : aVal;
+      const bNum = isNumeric
+        ? Number(bVal.toString().replace(/[^0-9.-]+/g, ""))
+        : bVal;
+
+      if (isNumeric) {
+        const aParsed = Number(aVal.toString().replace(/[^0-9.-]+/g, ""));
+        const bParsed = Number(bVal.toString().replace(/[^0-9.-]+/g, ""));
+        return direction === "asc" ? aParsed - bParsed : bParsed - aParsed;
+      }
+
+      return direction === "asc"
+        ? aNum.toString().localeCompare(bNum.toString())
+        : bNum.toString().localeCompare(aNum.toString());
+    });
+  };
+
+  const filteredFollowed = sortCompanies(
+    followed.filter((company) =>
+      company.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
   );
-  const filteredNotFollowed = notFollowed.filter((company) =>
-    company.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredNotFollowed = sortCompanies(
+    notFollowed.filter((company) =>
+      company.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
   );
 
-  // Render a table for a given stocks list with an Action button.
   const renderTable = (stocks: Company[], title: string) => (
     <div className="mb-8">
       <h2 className="text-xl font-semibold mb-4 text-blue-900 dark:text-blue-300 underline decoration-blue-300 dark:decoration-gray-600 decoration-2 underline-offset-8">
@@ -190,27 +218,23 @@ export default function CompaniesPage() {
         <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
           <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
-                Name
-              </th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
-                Market Cap
-              </th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
-                Balance
-              </th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
-                Price
-              </th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
-                30D
-              </th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
-                1Y
-              </th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
-                Today
-              </th>
+              {[
+                { key: "name", label: "Name" },
+                { key: "marketCap", label: "Market Cap" },
+                { key: "balance", label: "Balance" },
+                { key: "price", label: "Price" },
+                { key: "change30D", label: "30D" },
+                { key: "change1Y", label: "1Y" },
+                { key: "changeToday", label: "Today" },
+              ].map((col) => (
+                <th
+                  key={col.key}
+                  onClick={() => handleSort(col.key as keyof Company)}
+                  className="px-6 py-3 text-left text-gray-500 dark:text-gray-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  {col.label} {renderSortArrow(col.key as keyof Company)}
+                </th>
+              ))}
               <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
                 Action
               </th>
@@ -223,18 +247,10 @@ export default function CompaniesPage() {
                 onClick={() => handleRowClick(company.id)}
                 className="hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-colors"
               >
-                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
-                  {company.name}
-                </td>
-                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
-                  {company.marketCap}
-                </td>
-                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
-                  {company.balance}
-                </td>
-                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
-                  {company.price}
-                </td>
+                <td className="px-6 py-4">{company.name}</td>
+                <td className="px-6 py-4">{company.marketCap}</td>
+                <td className="px-6 py-4">{company.balance}</td>
+                <td className="px-6 py-4">{company.price}</td>
                 <td
                   className={`px-6 py-4 ${
                     company.change30D.startsWith("+")
@@ -263,7 +279,6 @@ export default function CompaniesPage() {
                   {company.changeToday}
                 </td>
                 <td className="px-6 py-4">
-                  {/* Prevent the row click by stopping propagation */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -296,14 +311,26 @@ export default function CompaniesPage() {
 
   return (
     <div className="p-4 bg-slate-100 dark:bg-gray-900 min-h-screen">
-      {/* Search Input */}
-      <div className="mb-4">
+      <div className="mb-6 flex items-center w-full max-w-md bg-gray-100 dark:bg-gray-800 rounded-full px-4 py-2 shadow-sm border border-transparent focus-within:border-blue-500">
+        <svg
+          className="w-5 h-5 text-blue-400 mr-3"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
         <input
           type="text"
-          placeholder="Search stocks by name..."
+          placeholder="Search for something"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="p-2 border border-gray-300 rounded"
+          className="bg-transparent w-full outline-none text-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
         />
       </div>
 

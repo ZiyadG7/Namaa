@@ -51,6 +51,7 @@ export async function GET() {
         user_follows ( user_id )
       `
       )
+      .order("date", { ascending: false, referencedTable: "stock_prices" })
       .limit(1, { foreignTable: "prices" })
       .limit(1, { foreignTable: "financials" })
       .limit(1, { foreignTable: "metrics" });
@@ -82,11 +83,16 @@ export async function GET() {
 
       // Get all prices for this stock
       const stockPrices =
-        historicalPrices?.filter((p: any) => p.stock_id === stock.stock_id) || [];
+        historicalPrices?.filter((p: any) => p.stock_id === stock.stock_id) ||
+        [];
 
       // Determine if this stock is followed by the current user
       let is_followed = false;
-      if (user_id && Array.isArray(stock.user_follows) && stock.user_follows.length > 0) {
+      if (
+        user_id &&
+        Array.isArray(stock.user_follows) &&
+        stock.user_follows.length > 0
+      ) {
         is_followed = stock.user_follows.some(
           (follow: any) => follow.user_id === user_id
         );

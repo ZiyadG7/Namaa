@@ -28,7 +28,7 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
     .from("stock_prices")
     .select("*")
     .eq("stock_id", companyId)
-    .order("date", { ascending: true })
+    .order("date", { ascending: false })
     .limit(7);
 
   if (stockError || !company) {
