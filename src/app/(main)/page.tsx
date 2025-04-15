@@ -1,101 +1,168 @@
-import Image from "next/image";
+
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Loading from "../(main)/Components/Loading";
+
+
+interface Company {
+  id: number;
+  ticker: string;
+  name: string;
+  count: number;
+  price: string;
+  changeToday: string;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  
+  const router = useRouter();
+  const [followed, setFollowed] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+  // Fetech follow stocks data
+  useEffect(() =>{
+    const fetchfollowStock = async () =>{
+      try {
+        const response = await fetch("/api/followStock",{
+          method: "POST",
+          headers:{
+            "Content-Type": "application/json"          
+          },
+          body: JSON.stringify({ 
+            stock_id: Company
+          })
+        });
+        if (!response.ok){
+          throw new Error(`HTTP error! status: ${response.status}`)
+        } 
+
+        const followStockData = await response.json(); 
+
+
+        const companies: Company[] = followStockData.map((stock: any)=>{
+          const latestPrice = stock.latest_price || {
+            share_price: 0,
+            market_cap:0,
+          };
+          
+
+          const changeToday = calculatePriceChange(stock.prices, 1);
+
+          return{
+            id: stock.stock_id,
+            ticker: stock.ticker,
+            name: stock.company_name,
+            price: formatCurrency(latestPrice.share_price),
+            changeToday,
+          };
+        });
+        setLoading(false);
+      } catch(error){
+        console.error("Fetch error:", error);
+        setError("Failed to load stock data");
+        setLoading(false)
+      }
+    };
+    fetchfollowStock();
+  },[]);
+
+  const formatCurrency = (value: number): string => {
+    if (value >= 1e12) return `$${(value / 1e12).toFixed(1)}T`;
+    if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
+    if (value >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "SAR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
+
+
+  const calculatePriceChange = (prices: any[], days: number): string => {
+    if (!prices || prices.length < 2) return "0%";
+
+    const latestPrice = prices[0]?.share_price;
+    if (!latestPrice) return "0%";
+
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() - days);
+
+    // Find the first price entry older than or equal to the target date
+    const historicalPrice = prices.find((p: any) => {
+      const priceDate = new Date(p.date);
+      return priceDate <= targetDate;
+    })?.share_price;
+
+    if (!historicalPrice) return "0%";
+
+    const change = ((latestPrice - historicalPrice) / historicalPrice) * 100;
+    return change >= 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
+  };
+
+  const handleRowClick = (companyId: number) => {
+    router.push(`/analysis/${companyId}`);
+  };
+
+  const renderTable = (stocks: Company[]) =>(
+    <div className="mb-8">
+      <h2 className="text-xl font-semibold mb-4 text-blue-900 dark:text-blue-300 underline decoration-blue-300 dark:decoration-gray-600 decoration-2 underline-offset-8">
+        My portfolio  
+      </h2>
+      <div className="overflow-x-auto rounded-lg shadow-md bg-white dark:bg-gray-800">
+        <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+          <thead className="bg-gray-100 dark:bg-gray-700">
+            <tr>
+            <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
+                Name
+            </th>
+            <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
+                Price
+            </th>
+            <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
+                Count
+            </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+            {stocks.map((company)=>(
+              <tr
+              key={company.id}
+              onClick={() => handleRowClick(company.id)}
+              className="hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+              >
+                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
+                  {company.name}
+                </td>
+                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
+                  {company.price}
+                </td>
+                <td>
+                  <input type="number" />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  if (loading) return <Loading/>;
+  if (error)
+    return(
+      <div className="p-4 text-center text-red-500 dark:text-red-400">
+      {error}
+    </div>
+  );
+
+  return (
+    <div className="p-4 bg-slate-100 dark:bg-gray-900 min-h-screen">
+      {renderTable(followed)}
     </div>
   );
 }
