@@ -41,8 +41,8 @@ export async function GET() {
     let errorCount = 0; // Counter for errors
 
     let currentDate = new Date();
-    let date = new Date('2024-04-15T12:00:00');
-    // currentDate = new Date('2025-03-29T12:00:00');
+    let date = new Date('2024-10-01T12:00:00');
+    currentDate = new Date('2024-10-02T12:00:00');
 
     // console.log(currentDate)
 
@@ -68,14 +68,13 @@ export async function GET() {
             ]);
             
             if (error) {
-              console.error("Error inserting:", error.message, date, stock.ticker);
+              console.error("Error inserting:", error.message, date, ticker);
             } else {
-              console.log("Inserted:", date, stock.ticker);
+              console.log(`✅ Inserted stock prices for ${ticker} date ${date}`);
             }
-      
-            console.log(`✅ Inserted stock prices for ${ticker} date ${date}`);
-        }    
-        date.setDate(date.getDate() + 1)
+              }    
+        // date.setDate(date.getDate() + 1)
+        date.setMonth(date.getMonth() + 1)
     }
     } catch (err) {
         return NextResponse.json({ error: err.message || 'Something went wrong' }, { status: 500 })

@@ -69,7 +69,8 @@ export async function GET() {
     // Calculate the date one year/month ago
     let oneYearAgoDate = new Date();
     let oneMonthAgoDate = new Date();
-    oneYearAgoDate.setFullYear(oneYearAgoDate.getFullYear() - 1); 
+    oneYearAgoDate.setFullYear(oneYearAgoDate.getFullYear() - 1);
+    oneYearAgoDate.setDate(1);
     oneMonthAgoDate.setMonth(oneMonthAgoDate.getMonth() - 1)
 
     const oneYearAgoPrices = await supabase
@@ -87,10 +88,10 @@ export async function GET() {
       const latestFinancial = stock.financials?.[0];
 
       const oneYearAgoPrice =
-        oneYearAgoPrices?.find((p) => p.stock_id === stock.stock_id)?.share_price || null;
+        oneYearAgoPrices.data?.find((p) => p.stock_id === stock.stock_id)?.share_price || null;
         
     const oneMonthAgoPrice =
-        oneMonthAgoPrices?.find((p) => p.stock_id == stock.stock_id)?.share_price || null;
+        oneMonthAgoPrices.data?.find((p) => p.stock_id == stock.stock_id)?.share_price || null;
 
       return {
         stock_id: stock.stock_id,
@@ -101,7 +102,7 @@ export async function GET() {
         sector_arabic: stock.sector_arabic,
         oneYearAgoPrice: oneYearAgoPrice,
         oneMonthAgoPrice: oneMonthAgoPrice,
-        latest_prices: latestPrices[stock.ticker],
+        latest_price: latestPrices[stock.ticker],
         latest_financial: latestFinancial,
       };
     });
