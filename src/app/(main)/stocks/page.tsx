@@ -10,11 +10,11 @@ interface Company {
   ticker: string;
   name: string;
   marketCap: string;
-  balance: string;
   price: string;
   change30D: string;
   change1Y: string;
   changeToday: string;
+  peRatio: string;
   category: "followed" | "notFollowed";
 }
 
@@ -44,29 +44,29 @@ export default function CompaniesPage() {
         const companies: Company[] = stocksData.map((stock: any) => {
           const latestPrice = stock.latest_price || {
             share_price: 0,
-            market_cap: 0,
           };
-          const financials = stock.latest_financial || {
-            total_assets: 0,
-            total_debt: 0,
-          };
+
+          const sharesOutstanding = parseFloat(stock.shares_outstanding) || 0;
+          const sharePrice = parseFloat(latestPrice?.share_price) || 0;
+          const eps = parseFloat(stock.latest_metric?.eps) || 0;
 
           const change30D = calculatePriceChange(stock.prices, 30);
           const change1Y = calculatePriceChange(stock.prices, 365);
           const changeToday = calculatePriceChange(stock.prices, 1);
 
+          const marketCapValue = sharePrice * sharesOutstanding;
+          const peRatio = eps > 0 ? (sharePrice / eps).toFixed(1) : "N/A";
+
           return {
             id: stock.stock_id,
             ticker: stock.ticker,
             name: stock.company_name,
-            marketCap: formatCurrency(latestPrice.market_cap),
-            balance: formatCurrency(
-              financials.total_assets - financials.total_debt
-            ),
-            price: formatCurrency(latestPrice.share_price),
+            marketCap: formatCurrency(marketCapValue),
+            price: formatCurrency(sharePrice),
             change30D,
             change1Y,
             changeToday,
+            peRatio,
             category: stock.is_followed ? "followed" : "notFollowed",
           };
         });
@@ -105,12 +105,12 @@ export default function CompaniesPage() {
   };
 
   const formatCurrency = (value: number): string => {
-    if (value >= 1e12) return `$${(value / 1e12).toFixed(1)}T`;
-    if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
-    if (value >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
-    return new Intl.NumberFormat("en-US", {
+    if (value >= 1e12) return `SAR ${(value / 1e12).toFixed(1)}T`;
+    if (value >= 1e9) return `SAR ${(value / 1e9).toFixed(1)}B`;
+    if (value >= 1e6) return `SAR ${(value / 1e6).toFixed(1)}M`;
+    return new Intl.NumberFormat("en-SA", {
       style: "currency",
-      currency: "USD",
+      currency: "SAR",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
@@ -221,8 +221,8 @@ export default function CompaniesPage() {
               {[
                 { key: "name", label: "Name" },
                 { key: "marketCap", label: "Market Cap" },
-                { key: "balance", label: "Balance" },
                 { key: "price", label: "Price" },
+                { key: "peRatio", label: "P/E" },
                 { key: "change30D", label: "30D" },
                 { key: "change1Y", label: "1Y" },
                 { key: "changeToday", label: "Today" },
@@ -249,8 +249,8 @@ export default function CompaniesPage() {
               >
                 <td className="px-6 py-4">{company.name}</td>
                 <td className="px-6 py-4">{company.marketCap}</td>
-                <td className="px-6 py-4">{company.balance}</td>
                 <td className="px-6 py-4">{company.price}</td>
+                <td className="px-6 py-4">{company.peRatio}</td>
                 <td
                   className={`px-6 py-4 ${
                     company.change30D.startsWith("+")

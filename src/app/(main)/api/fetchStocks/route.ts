@@ -1,4 +1,3 @@
-// app/api/fetchStocks/route.ts
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
@@ -28,7 +27,7 @@ export async function GET() {
         sector,
         shares_outstanding,
         company_name_arabic,
-        sector_arabic,
+        sector_arabic, 
         prices:stock_prices(
           price_id,
           share_price,
@@ -105,6 +104,7 @@ export async function GET() {
         company_name_arabic: stock.company_name_arabic,
         sector: stock.sector,
         sector_arabic: stock.sector_arabic,
+        shares_outstanding: stock.shares_outstanding,
         prices: stockPrices,
         latest_price: latestPrice,
         latest_financial: latestFinancial,

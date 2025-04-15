@@ -39,6 +39,22 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
     );
   }
 
+  const latestPrice = prices?.[0]?.share_price || 0;
+  const sharesOutstanding = Number(company.shares_outstanding) || 0;
+  const marketCap = latestPrice * sharesOutstanding;
+
+  const formatCurrency = (value: number): string => {
+    if (value >= 1e12) return `SAR ${(value / 1e12).toFixed(1)}T`;
+    if (value >= 1e9) return `SAR ${(value / 1e9).toFixed(1)}B`;
+    if (value >= 1e6) return `SAR ${(value / 1e6).toFixed(1)}M`;
+    return new Intl.NumberFormat("en-SA", {
+      style: "currency",
+      currency: "SAR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
   return (
     <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
       {/* Company Overview */}
@@ -54,15 +70,16 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
         </div>
         <div className="mt-4 flex flex-wrap gap-6">
           <div>Sector: {company.sector}</div>
+          <div>Market Cap: {formatCurrency(marketCap)}</div>
           <div>
-            Market Cap: {prices?.[prices.length - 1]?.market_cap ?? "N/A"}
+            Shares Outstanding:{" "}
+            {sharesOutstanding
+              ? sharesOutstanding.toLocaleString()
+              : "N/A"}
           </div>
           <div>
-            Shares Outstanding: {company.shares_outstanding.toLocaleString()}
-          </div>
-          <div>
-            Price: $
-            {prices?.[prices.length - 1]?.share_price.toFixed(2) ?? "N/A"}
+            Price:{" "}
+            {latestPrice ? `${latestPrice.toFixed(2)} SAR` : "N/A"}
           </div>
         </div>
       </div>
@@ -71,7 +88,14 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
       {metrics && (
         <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
           <MetricCard title="Earnings Per Share (EPS)" value={metrics.eps} />
-          <MetricCard title="(P/E) Ratio" value={metrics.return_on_equity} />
+          <MetricCard
+            title="(P/E) Ratio"
+            value={
+              metrics.eps && metrics.eps > 0
+                ? (latestPrice / metrics.eps).toFixed(1)
+                : "N/A"
+            }
+          />
           <MetricCard
             title="Dividend Yield"
             value={metrics.trailing_annual_dividend_rate}
@@ -83,7 +107,7 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
         </div>
       )}
 
-      {/* Price Chart Placeholder */}
+      {/* Chart Placeholders */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold mb-2">Piechart (Coming Soon)</h2>
@@ -94,7 +118,7 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
 
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold mb-2">
-            Scatter polt (Coming Soon)
+            Scatter plot (Coming Soon)
           </h2>
           <div className="text-sm text-gray-400">
             Visualization will be added here.
