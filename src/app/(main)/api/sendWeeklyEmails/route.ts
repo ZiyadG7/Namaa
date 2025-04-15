@@ -23,16 +23,15 @@ function createEmailContent(stocks: any[]): string {
     return `<p>You are not following any stocks at the moment.</p>`;
   }
 
-  // Define the table header and styles.
+  // Define the table header and styles (with the updated columns).
   const tableHeader = `
     <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
       <thead>
         <tr style="background-color: #f2f2f2;">
-          <th>Ticker</th>
           <th>Company Name</th>
           <th>Sector</th>
-          <th>Latest Price</th>
-          <th>Date</th>
+          <th>Latest Price (Date)</th>
+          <th>Previous Price (Date)</th>
         </tr>
       </thead>
       <tbody>
@@ -41,15 +40,18 @@ function createEmailContent(stocks: any[]): string {
   // Build each row of the table for each stock.
   const tableRows = stocks
     .map((stock: any) => {
+      // Format prices with a dollar sign, or return 'N/A' if missing.
       const latestPrice = stock.latest_price ? `$${stock.latest_price}` : 'N/A';
-      const priceDate = stock.latest_price ? new Date(stock.price_date).toLocaleDateString() : 'N/A';
+      const latestDate = stock.latest_date ? new Date(stock.latest_date).toLocaleDateString() : 'N/A';
+      const previousPrice = stock.previous_price ? `$${stock.previous_price}` : 'N/A';
+      const previousDate = stock.previous_date ? new Date(stock.previous_date).toLocaleDateString() : 'N/A';
+
       return `
         <tr>
-          <td>${stock.ticker}</td>
           <td>${stock.company_name}</td>
           <td>${stock.sector}</td>
-          <td>${latestPrice}</td>
-          <td>${priceDate}</td>
+          <td>${latestPrice} (on ${latestDate})</td>
+          <td>${previousPrice} (on ${previousDate})</td>
         </tr>
       `;
     })
@@ -98,7 +100,8 @@ export async function POST() {
       try {
         await resend.emails.send({
           from: 'Weekly-Update@bahamdan.info', // Replace with your verified sender email.
-          to: email,
+          // to: email,
+          to: ["Fares.bahamdan@gmail.com"],
           subject: 'Your Weekly Stock Update',
           html: emailHtml,
         });
