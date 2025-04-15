@@ -1,4 +1,3 @@
-// app/stocks/page.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -25,6 +24,7 @@ export default function CompaniesPage() {
   const [notFollowed, setNotFollowed] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch stocks data on mount
   useEffect(() => {
@@ -172,6 +172,14 @@ export default function CompaniesPage() {
     }
   };
 
+  // Filter stocks based on the search query
+  const filteredFollowed = followed.filter((company) =>
+    company.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const filteredNotFollowed = notFollowed.filter((company) =>
+    company.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   // Render a table for a given stocks list with an Action button.
   const renderTable = (stocks: Company[], title: string) => (
     <div className="mb-8">
@@ -288,8 +296,19 @@ export default function CompaniesPage() {
 
   return (
     <div className="p-4 bg-slate-100 dark:bg-gray-900 min-h-screen">
-      {renderTable(followed, "Followed Stocks")}
-      {renderTable(notFollowed, "Stocks")}
+      {/* Search Input */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search stocks by name..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="p-2 border border-gray-300 rounded"
+        />
+      </div>
+
+      {renderTable(filteredFollowed, "Followed Stocks")}
+      {renderTable(filteredNotFollowed, "Stocks")}
     </div>
   );
 }
