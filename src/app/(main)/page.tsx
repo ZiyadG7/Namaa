@@ -26,16 +26,12 @@ export default function Home() {
   useEffect(() =>{
     const fetchfollowStock = async () =>{
       try {
+      
         const response = await fetch("/api/followStock",{
-          method: "POST",
-          headers:{
-            "Content-Type": "application/json"          
-          },
-          body: JSON.stringify({ 
-            stock_id: Company
-          })
+          method: "POST", 
         });
         if (!response.ok){
+          console.log(response.body)
           throw new Error(`HTTP error! status: ${response.status}`)
         } 
 
