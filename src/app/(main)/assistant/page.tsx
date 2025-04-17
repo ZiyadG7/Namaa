@@ -5,46 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Loading from "../Components/Loading";
 
-// temp data
-const mockPortfolio = [
-  {
-    ticker: "ARAMCO",
-    company_name: "Saudi Aramco",
-    sector: "Energy",
-    share_price: 32.5,
-    market_cap: 2000000000000,
-    total_assets: 800000000000,
-    total_debt: 100000000000,
-  },
-  {
-    ticker: "SABIC",
-    company_name: "SABIC",
-    sector: "Materials",
-    share_price: 90.75,
-    market_cap: 300000000000,
-    total_assets: 120000000000,
-    total_debt: 40000000000,
-  },
-  {
-    ticker: "STC",
-    company_name: "Saudi Telecom Company",
-    sector: "Telecommunications",
-    share_price: 130.0,
-    market_cap: 250000000000,
-    total_assets: 100000000000,
-    total_debt: 20000000000,
-  },
-  {
-    ticker: "ALRAJHI",
-    company_name: "Al Rajhi Bank",
-    sector: "Financials",
-    share_price: 95.2,
-    market_cap: 400000000000,
-    total_assets: 300000000000,
-    total_debt: 150000000000,
-  },
-];
-
 export default function AssistantPage() {
   const [portfolio, setPortfolio] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,8 +19,22 @@ export default function AssistantPage() {
   } | null>(null);
 
   useEffect(() => {
-    // will replace with users data from subabase
-    setPortfolio(mockPortfolio);
+    const fetchFollowedStocks = async () => {
+      try {
+        const res = await fetch("/api/followStock", { method: "GET" });
+        const data = await res.json();
+
+        if (res.ok) {
+          setPortfolio(data);
+        } else {
+          console.error("Error fetching followed stocks:", data.error);
+        }
+      } catch (err) {
+        console.error("Failed to fetch followed stocks:", err);
+      }
+    };
+
+    fetchFollowedStocks();
   }, []);
 
   const handleAction = async (action: string, customPrompt?: string) => {
@@ -119,6 +93,7 @@ export default function AssistantPage() {
       <h1 className="text-3xl font-bold mb-8 text-center text-blue-800 dark:text-blue-300">
         AI Investment Assistant
       </h1>
+
       {/* Portfolio Table */}
       <div className="overflow-x-auto mb-8 shadow rounded-lg">
         <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg">
@@ -127,7 +102,7 @@ export default function AssistantPage() {
               <th className="px-4 py-2">Company</th>
               <th className="px-4 py-2">Sector</th>
               <th className="px-4 py-2">Price</th>
-              <th className="px-4 py-2">Market Cap</th>
+              <th className="px-4 py-2"># of Stocks</th>
             </tr>
           </thead>
           <tbody>
@@ -139,11 +114,17 @@ export default function AssistantPage() {
                 <td className="px-4 py-2">{item.company_name}</td>
                 <td className="px-4 py-2">{item.sector}</td>
                 <td className="px-4 py-2">${item.share_price}</td>
-                <td className="px-4 py-2">
-                  ${(item.market_cap / 1e9).toFixed(2)}B
-                </td>
+                <td className="px-4 py-2">{item.number_of_stocks}</td>
+
               </tr>
             ))}
+            {portfolio.length === 0 && (
+              <tr>
+                <td colSpan={4} className="p-6 text-center text-gray-500">
+                  You haven't followed any stocks yet.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -170,9 +151,11 @@ export default function AssistantPage() {
         </div>
       )}
 
+      {/* Quick Action Buttons */}
       <div className="flex flex-wrap justify-center gap-4 mb-8">
         <Button onClick={() => handleAction("summarize")}>Summarize</Button>
         <Button onClick={() => handleAction("evaluate")}>Evaluate</Button>
+        <Button onClick={() => handleAction("risk")}>Risks</Button>
         <Button onClick={() => handleAction("suggest")}>
           Make Suggestions
         </Button>
@@ -181,7 +164,7 @@ export default function AssistantPage() {
         </Button>
       </div>
 
-      {/* Chat  */}
+      {/* Chat Section */}
       {chatMode && (
         <div className="w-full mx-auto">
           <h2 className="text-xl font-semibold mb-4 text-center">
@@ -208,6 +191,7 @@ export default function AssistantPage() {
             ))}
             {loading && <p className="text-blue-500">AI is thinking...</p>}
           </div>
+
           <form onSubmit={handleSubmitChat} className="flex items-center gap-2">
             <Input
               placeholder="Ask something like 'Should I diversify?'"

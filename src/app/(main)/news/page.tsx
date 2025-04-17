@@ -12,22 +12,15 @@ export default function News() {
   useEffect(() => {
     async function getNews() {
       setLoading(true);
-
-      // Fetch news from Supabase
-      const supabase = createClient();
-      const { data: news, error } = await supabase
-        .from("news_articles")
-        .select("*")
-        .order("published_at", { ascending: false })
-        .limit(50);
-
-      if (error) {
-        console.error("Error fetching news from Supabase:", error);
-      } else {
-        setNews(news || []);
+      try {
+        const res = await fetch("/api/fetchNews");
+        const data = await res.json();
+        setNews(data || []);
+      } catch (err) {
+        console.error("Error fetching news from API:", err);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     }
 
     getNews();
@@ -81,15 +74,15 @@ export default function News() {
                         entity.sentiment_score < 0
                           ? "bg-red-200 dark:bg-red-900"
                           : entity.sentiment_score > 0
-                            ? "bg-green-200 dark:bg-green-900"
-                            : "bg-gray-200 dark:bg-gray-900"
+                          ? "bg-green-200 dark:bg-green-900"
+                          : "bg-gray-200 dark:bg-gray-900"
                       }`}
                     >
                       {entity.sentiment_score < 0
                         ? "Negative"
                         : entity.sentiment_score > 0
-                          ? "Positive"
-                          : "Neutral"}
+                        ? "Positive"
+                        : "Neutral"}
                     </span>
                   </div>
                 ))}

@@ -7,12 +7,19 @@ import { calculatePriceChange } from "@/utils/calculatePriceChange";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { Company } from '@/types/company';
 
+
 export default function CompaniesPage() {
   const router = useRouter();
   const [followed, setFollowed] = useState<Company[]>([]);
   const [notFollowed, setNotFollowed] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Company | null;
+    direction: "asc" | "desc";
+  }>({ key: null, direction: "asc" });
 
   useEffect(() => {
     const fetchStocksData = async () => {
@@ -24,42 +31,37 @@ export default function CompaniesPage() {
 
         const stocksData = await response.json();
 
-        const companies = stocksData.map((stock: any) => {
-          const latestPrices = stock.latest_price || {
+        const companies: Company[] = stocksData.map((stock: any) => {
+          const latestPrice = stock.latest_price || {
             share_price: 0,
-            market_cap: 0,
-          };
-          const financials = stock.latest_financial || {
-            total_assets: 0,
-            total_debt: 0,
           };
 
-          // Calculate changes
-          const change30D = calculatePriceChange(latestPrices.price, stock.oneMonthAgoPrice);
-          const change1Y = calculatePriceChange(latestPrices.price, stock.oneYearAgoPrice);
-          const changeToday = calculatePriceChange(latestPrices.price, latestPrices.open);
+          const sharesOutstanding = parseFloat(stock.shares_outstanding) || 0;
+          const sharePrice = parseFloat(latestPrice?.share_price) || 0;
+          const eps = parseFloat(stock.latest_metric?.eps) || 0;
+
+          const change30D = calculatePriceChange(stock.prices, 30);
+          const change1Y = calculatePriceChange(stock.prices, 365);
+          const changeToday = calculatePriceChange(stock.prices, 1);
+
+          const marketCapValue = sharePrice * sharesOutstanding;
+          const peRatio = eps > 0 ? (sharePrice / eps).toFixed(1) : "N/A";
 
           return {
             id: stock.ticker,
             name: stock.company_name,
-            marketCap: formatCurrency(latestPrices.marketcap),
-            balance: formatCurrency(
-              financials.total_assets - financials.total_debt
-            ),
-            price: formatCurrency(latestPrices.price),
+            marketCap: formatCurrency(marketCapValue),
+            price: formatCurrency(sharePrice),
             change30D,
             change1Y,
             changeToday,
+            peRatio,
             category: stock.is_followed ? "followed" : "notFollowed",
           };
         });
 
-        setFollowed(
-          companies.filter((c: Company) => c.category === "followed")
-        );
-        setNotFollowed(
-          companies.filter((c: Company) => c.category === "notFollowed")
-        );
+        setFollowed(companies.filter((c) => c.category === "followed"));
+        setNotFollowed(companies.filter((c) => c.category === "notFollowed"));
         setLoading(false);
       } catch (err) {
         console.error("Fetch error:", err);
@@ -71,9 +73,98 @@ export default function CompaniesPage() {
     fetchStocksData();
   }, []);
 
-  const handleRowClick = (companyId: string) => {
-    router.push(`/stocks/${companyId}`);
+  const handleRowClick = (companyId: number) => {
+    router.push(`/analysis/${companyId}`);
   };
+
+  const handleFollowToggle = async (company: Company) => {
+    try {
+      const endpoint =
+        company.category === "followed"
+          ? "/api/unfollowStock"
+          : "/api/followStock";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ stock_id: company.id }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update follow status");
+      }
+
+      if (company.category === "followed") {
+        setFollowed((prev) => prev.filter((c) => c.id !== company.id));
+        setNotFollowed((prev) => [
+          ...prev,
+          { ...company, category: "notFollowed" },
+        ]);
+      } else {
+        setNotFollowed((prev) => prev.filter((c) => c.id !== company.id));
+        setFollowed((prev) => [...prev, { ...company, category: "followed" }]);
+      }
+    } catch (err) {
+      console.error("Follow toggle error:", err);
+    }
+  };
+
+  const handleSort = (key: keyof Company) => {
+    setSortConfig((prev) =>
+      prev.key === key
+        ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
+        : { key, direction: "asc" }
+    );
+  };
+
+  const renderSortArrow = (key: keyof Company) => {
+    if (sortConfig.key !== key) return null;
+    return sortConfig.direction === "asc" ? "↑" : "↓";
+  };
+
+  const sortCompanies = (companies: Company[]) => {
+    const { key, direction } = sortConfig;
+    if (!key) return companies;
+
+    return [...companies].sort((a, b) => {
+      const aVal = a[key] || "";
+      const bVal = b[key] || "";
+
+      const isNumeric =
+        !isNaN(Number(aVal.toString().replace(/[^0-9.-]+/g, ""))) &&
+        !isNaN(Number(bVal.toString().replace(/[^0-9.-]+/g, "")));
+
+      const aNum = isNumeric
+        ? Number(aVal.toString().replace(/[^0-9.-]+/g, ""))
+        : aVal;
+      const bNum = isNumeric
+        ? Number(bVal.toString().replace(/[^0-9.-]+/g, ""))
+        : bVal;
+
+      if (isNumeric) {
+        const aParsed = Number(aVal.toString().replace(/[^0-9.-]+/g, ""));
+        const bParsed = Number(bVal.toString().replace(/[^0-9.-]+/g, ""));
+        return direction === "asc" ? aParsed - bParsed : bParsed - aParsed;
+      }
+
+      return direction === "asc"
+        ? aNum.toString().localeCompare(bNum.toString())
+        : bNum.toString().localeCompare(aNum.toString());
+    });
+  };
+
+  const filteredFollowed = sortCompanies(
+    followed.filter((company) =>
+      company.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  );
+  const filteredNotFollowed = sortCompanies(
+    notFollowed.filter((company) =>
+      company.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  );
 
   const renderTable = (stocks: Company[], title: string) => (
     <div className="mb-8">
@@ -84,26 +175,25 @@ export default function CompaniesPage() {
         <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
           <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
+              {[
+                { key: "name", label: "Name" },
+                { key: "marketCap", label: "Market Cap" },
+                { key: "price", label: "Price" },
+                { key: "peRatio", label: "P/E" },
+                { key: "change30D", label: "30D" },
+                { key: "change1Y", label: "1Y" },
+                { key: "changeToday", label: "Today" },
+              ].map((col) => (
+                <th
+                  key={col.key}
+                  onClick={() => handleSort(col.key as keyof Company)}
+                  className="px-6 py-3 text-left text-gray-500 dark:text-gray-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  {col.label} {renderSortArrow(col.key as keyof Company)}
+                </th>
+              ))}
               <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
-                Name
-              </th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
-                Market Cap
-              </th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
-                Balance
-              </th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
-                Price
-              </th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
-                30D
-              </th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
-                1Y
-              </th>
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
-                Today
+                Action
               </th>
             </tr>
           </thead>
@@ -114,18 +204,10 @@ export default function CompaniesPage() {
                 onClick={() => handleRowClick(company.id)}
                 className="hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-colors"
               >
-                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
-                  {company.name}
-                </td>
-                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
-                  {company.marketCap}
-                </td>
-                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
-                  {company.balance}
-                </td>
-                <td className="px-6 py-4 text-gray-900 dark:text-gray-300">
-                  {company.price}
-                </td>
+                <td className="px-6 py-4">{company.name}</td>
+                <td className="px-6 py-4">{company.marketCap}</td>
+                <td className="px-6 py-4">{company.price}</td>
+                <td className="px-6 py-4">{company.peRatio}</td>
                 <td
                   className={`px-6 py-4 ${
                     company.change30D.startsWith("+")
@@ -153,6 +235,21 @@ export default function CompaniesPage() {
                 >
                   {company.changeToday}
                 </td>
+                <td className="px-6 py-4">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFollowToggle(company);
+                    }}
+                    className="text-2xl transition-colors"
+                  >
+                    {company.category === "followed" ? (
+                      <FaHeart className="text-red-500 hover:text-red-600" />
+                    ) : (
+                      <FaRegHeart className="text-gray-400 hover:text-pink-500" />
+                    )}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -171,8 +268,31 @@ export default function CompaniesPage() {
 
   return (
     <div className="p-4 bg-slate-100 dark:bg-gray-900 min-h-screen">
-      {renderTable(followed, "Followed Stocks")}
-      {renderTable(notFollowed, "Stocks")}
+      <div className="mb-6 flex items-center w-full max-w-md bg-gray-100 dark:bg-gray-800 rounded-full px-4 py-2 shadow-sm border border-transparent focus-within:border-blue-500">
+        <svg
+          className="w-5 h-5 text-blue-400 mr-3"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+        <input
+          type="text"
+          placeholder="Search for something"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="bg-transparent w-full outline-none text-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+        />
+      </div>
+
+      {renderTable(filteredFollowed, "Followed Stocks")}
+      {renderTable(filteredNotFollowed, "Stocks")}
     </div>
   );
 }
