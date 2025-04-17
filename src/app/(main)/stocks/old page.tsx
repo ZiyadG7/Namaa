@@ -99,7 +99,7 @@ export default function CompaniesPage() {
     if (value >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "USD",
+      currency: "SAR",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);

@@ -13,7 +13,10 @@ export async function POST(req: Request) {
     const actionPrompts: Record<string, string> = {
       summarize: "Summarize the following investment portfolio:",
       evaluate: "Evaluate the strengths and weaknesses of this portfolio:",
+      //risk per stock 
+      risk :"Evaluate the positive and negative risk of each stock in this portfolio",
       suggest: "Provide suggestions to improve this portfolio:",
+
       
     };
 
