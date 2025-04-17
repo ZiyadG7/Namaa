@@ -124,9 +124,6 @@
   }
 }
 
-
-
-
 @layer base {
   * {
     @apply border-border;
@@ -134,4 +131,12 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@font-face {
+  font-family: 'Saudi-Riyal';
+  src: url('/fonts/Saudi-Riyal.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }

@@ -43,30 +43,40 @@ export default function CompaniesPage() {
 
         const companies: Company[] = stocksData.map((stock: any) => {
           const latestPrice = stock.latest_price || {
-            share_price: 0,
+            price: 0,
+            open: 0,
+            high: 0,
+            low: 0,
+            volume: 0,
+            marketcap: 0,
           };
 
           const sharesOutstanding = parseFloat(stock.shares_outstanding) || 0;
-          const sharePrice = parseFloat(latestPrice?.share_price) || 0;
-          const eps = parseFloat(stock.latest_metric?.eps) || 0;
+          const sharePrice = parseFloat(latestPrice?.price) || 0;
+          const openPrice = parseFloat(latestPrice?.open) || 0;
+          const highPrice = parseFloat(latestPrice?.high) || 0;
+          const lowPrice = parseFloat(latestPrice?.low) || 0;
+          const volume = parseFloat(latestPrice?.volume) || 0;
+          const marketcap = parseFloat(latestPrice?.marketcap) || 0;
 
-          const change30D = calculatePriceChange(stock.prices, 30);
-          const change1Y = calculatePriceChange(stock.prices, 365);
-          const changeToday = calculatePriceChange(stock.prices, 1);
-
-          const marketCapValue = sharePrice * sharesOutstanding;
-          const peRatio = eps > 0 ? (sharePrice / eps).toFixed(1) : "N/A";
+          // Calculate changes over different periods
+          const change30D = calculatePriceChange(latestPrice.price, stock.oneMonthAgoPrice);
+          const change1Y = calculatePriceChange(latestPrice.price, stock.oneYearAgoPrice);
+          const changeToday = calculatePriceChange(latestPrice.price, latestPrice.open);
 
           return {
             id: stock.stock_id,
             ticker: stock.ticker,
             name: stock.company_name,
-            marketCap: formatCurrency(marketCapValue),
+            marketCap: formatCurrency(marketcap),
             price: formatCurrency(sharePrice),
+            open: formatCurrency(openPrice),
+            high: formatCurrency(highPrice),
+            low: formatCurrency(lowPrice),
+            volume: formatCurrency(volume),
             change30D,
             change1Y,
             changeToday,
-            peRatio,
             category: stock.is_followed ? "followed" : "notFollowed",
           };
         });
@@ -84,36 +94,24 @@ export default function CompaniesPage() {
     fetchStocksData();
   }, []);
 
-  const calculatePriceChange = (prices: any[], days: number): string => {
-    if (!prices || prices.length < 2) return "0%";
+  const calculatePriceChange = (strLatestPrice: string, strHistoricalPrice: string): string => {
+    const latestPrice = Number.parseFloat(strLatestPrice);
+    const historicalPrice = Number.parseFloat(strHistoricalPrice);
 
-    const latestPrice = prices[0]?.share_price;
-    if (!latestPrice) return "0%";
+    // console.log(latestPrice)
 
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() - days);
-
-    const historicalPrice = prices.find((p: any) => {
-      const priceDate = new Date(p.date);
-      return priceDate <= targetDate;
-    })?.share_price;
-
-    if (!historicalPrice) return "0%";
+    if (!strLatestPrice || !strHistoricalPrice) return '0%';
 
     const change = ((latestPrice - historicalPrice) / historicalPrice) * 100;
     return change >= 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
   };
 
   const formatCurrency = (value: number): string => {
-    if (value >= 1e12) return `${(value / 1e12).toFixed(1)}T SAR`;
-    if (value >= 1e9) return ` ${(value / 1e9).toFixed(1)}B SAR`;
-    if (value >= 1e6) return ` ${(value / 1e6).toFixed(1)}M SAR`;
-    return new Intl.NumberFormat("en-SA", {
-      style: "currency",
-      currency: "SAR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
+    if (value >= 1e12) return `\ue900${(value / 1e12).toFixed(1)}T`;
+    if (value >= 1e9) return `\ue900${(value / 1e9).toFixed(1)}B`;
+    if (value >= 1e6) return `\ue900${(value / 1e6).toFixed(1)}M`;
+    if (value >= 1e3) return `\ue900${(value / 1e3).toFixed(1)}K`;
+    return `\ue900${value}`
   };
 
   const handleRowClick = (companyId: number) => {
@@ -222,7 +220,10 @@ export default function CompaniesPage() {
                 { key: "name", label: "Name" },
                 { key: "marketCap", label: "Market Cap" },
                 { key: "price", label: "Price" },
-                { key: "peRatio", label: "P/E" },
+                { key: "open", label: "Open" },
+                { key: "high", label: "High" },
+                { key: "low", label: "Low" },
+                { key: "volume", label: "Volume" },
                 { key: "change30D", label: "30D" },
                 { key: "change1Y", label: "1Y" },
                 { key: "changeToday", label: "Today" },
@@ -230,12 +231,12 @@ export default function CompaniesPage() {
                 <th
                   key={col.key}
                   onClick={() => handleSort(col.key as keyof Company)}
-                  className="px-6 py-3 text-left text-gray-500 dark:text-gray-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+                  className="px-3 py-3 text-left text-gray-500 dark:text-gray-300 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 text-center align-middle"
                 >
                   {col.label} {renderSortArrow(col.key as keyof Company)}
                 </th>
               ))}
-              <th className="px-6 py-3 text-left text-gray-500 dark:text-gray-300">
+              <th className="px-3 py-3 text-left text-gray-500 dark:text-gray-300 text-center align-middle">
                 Action
               </th>
             </tr>
@@ -247,12 +248,15 @@ export default function CompaniesPage() {
                 onClick={() => handleRowClick(company.id)}
                 className="hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer transition-colors"
               >
-                <td className="px-6 py-4">{company.name}</td>
-                <td className="px-6 py-4">{company.marketCap}</td>
-                <td className="px-6 py-4">{company.price}</td>
-                <td className="px-6 py-4">{company.peRatio}</td>
+                <td className="font-SaudiRiyal px-3 py-4">{company.name}</td>
+                <td className="font-SaudiRiyal px-3 py-4 text-center align-middle">{company.marketCap}</td>
+                <td className="font-SaudiRiyal px-3 py-4 text-center align-middle">{company.price}</td>
+                <td className="font-SaudiRiyal px-3 py-4 text-center align-middle">{company.open}</td>
+                <td className="font-SaudiRiyal px-3 py-4 text-center align-middle">{company.high}</td>
+                <td className="font-SaudiRiyal px-3 py-4 text-center align-middle">{company.low}</td>
+                <td className="font-SaudiRiyal px-3 py-4 text-center align-middle">{company.volume}</td>
                 <td
-                  className={`px-6 py-4 ${
+                  className={`px-3 py-4 text-center align-middle ${
                     company.change30D.startsWith("+")
                       ? "text-green-600 dark:text-green-400"
                       : "text-red-600 dark:text-red-400"
@@ -261,7 +265,7 @@ export default function CompaniesPage() {
                   {company.change30D}
                 </td>
                 <td
-                  className={`px-6 py-4 ${
+                  className={`px-3 py-4 text-center align-middle ${
                     company.change1Y.startsWith("+")
                       ? "text-green-600 dark:text-green-400"
                       : "text-red-600 dark:text-red-400"
@@ -270,7 +274,7 @@ export default function CompaniesPage() {
                   {company.change1Y}
                 </td>
                 <td
-                  className={`px-6 py-4 ${
+                  className={`px-3 py-4 text-center align-middle ${
                     company.changeToday.startsWith("+")
                       ? "text-green-600 dark:text-green-400"
                       : "text-red-600 dark:text-red-400"
@@ -278,7 +282,7 @@ export default function CompaniesPage() {
                 >
                   {company.changeToday}
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-3 py-4 text-center align-middle">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
