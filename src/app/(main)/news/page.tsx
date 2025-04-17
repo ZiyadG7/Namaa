@@ -76,6 +76,7 @@ export default function News() {
                           : entity.sentiment_score > 0
                           ? "bg-green-200 dark:bg-green-900"
                           : "bg-gray-200 dark:bg-gray-900"
+
                       }`}
                     >
                       {entity.sentiment_score < 0
@@ -83,6 +84,7 @@ export default function News() {
                         : entity.sentiment_score > 0
                         ? "Positive"
                         : "Neutral"}
+
                     </span>
                   </div>
                 ))}

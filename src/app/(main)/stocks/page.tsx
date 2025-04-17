@@ -7,7 +7,6 @@ import { calculatePriceChange } from "@/utils/calculatePriceChange";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { Company } from '@/types/company';
 
-
 export default function CompaniesPage() {
   const router = useRouter();
   const [followed, setFollowed] = useState<Company[]>([]);
@@ -36,26 +35,26 @@ export default function CompaniesPage() {
             share_price: 0,
           };
 
-          const sharesOutstanding = parseFloat(stock.shares_outstanding) || 0;
-          const sharePrice = parseFloat(latestPrice?.share_price) || 0;
-          const eps = parseFloat(stock.latest_metric?.eps) || 0;
 
-          const change30D = calculatePriceChange(stock.prices, 30);
-          const change1Y = calculatePriceChange(stock.prices, 365);
-          const changeToday = calculatePriceChange(stock.prices, 1);
+          // Calculate changes
+          const change30D = calculatePriceChange(latestPrices.price, stock.oneMonthAgoPrice);
+          const change1Y = calculatePriceChange(latestPrices.price, stock.oneYearAgoPrice);
+          const changeToday = calculatePriceChange(latestPrices.price, latestPrices.open);
 
-          const marketCapValue = sharePrice * sharesOutstanding;
           const peRatio = eps > 0 ? (sharePrice / eps).toFixed(1) : "N/A";
 
           return {
             id: stock.ticker,
             name: stock.company_name,
-            marketCap: formatCurrency(marketCapValue),
-            price: formatCurrency(sharePrice),
+            peRatio,
+            marketCap: formatCurrency(latestPrices.marketcap),
+            balance: formatCurrency(
+              financials.total_assets - financials.total_debt
+            ),
+            price: formatCurrency(latestPrices.price),
             change30D,
             change1Y,
             changeToday,
-            peRatio,
             category: stock.is_followed ? "followed" : "notFollowed",
           };
         });
@@ -166,6 +165,10 @@ export default function CompaniesPage() {
     )
   );
 
+  const handleRowClick = (companyId: string) => {
+    router.push(`/stocks/${companyId}`);
+  };
+
   const renderTable = (stocks: Company[], title: string) => (
     <div className="mb-8">
       <h2 className="text-xl font-semibold mb-4 text-blue-900 dark:text-blue-300 underline decoration-blue-300 dark:decoration-gray-600 decoration-2 underline-offset-8">
@@ -250,6 +253,7 @@ export default function CompaniesPage() {
                     )}
                   </button>
                 </td>
+
               </tr>
             ))}
           </tbody>

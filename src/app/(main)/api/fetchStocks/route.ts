@@ -27,7 +27,7 @@ export async function GET() {
         sector,
         shares_outstanding,
         company_name_arabic,
-        sector_arabic, 
+        sector_arabic,
         financials:financials(
           financial_id,
           total_assets,
@@ -72,6 +72,18 @@ export async function GET() {
     oneYearAgoDate.setDate(1);
     oneMonthAgoDate.setMonth(oneMonthAgoDate.getMonth() - 1)
 
+      // Determine if this stock is followed by the current user
+      let is_followed = false;
+      if (
+        user_id &&
+        Array.isArray(stock.user_follows) &&
+        stock.user_follows.length > 0
+      ) {
+        is_followed = stock.user_follows.some(
+          (follow: any) => follow.user_id === user_id
+        );
+      }
+    
     const oneYearAgoPrices = await supabase
         .from("stock_prices")
         .select("stock_id, share_price")
@@ -99,6 +111,7 @@ export async function GET() {
         company_name_arabic: stock.company_name_arabic,
         sector: stock.sector,
         sector_arabic: stock.sector_arabic,
+        shares_outstanding: stock.shares_outstanding,
         oneYearAgoPrice: oneYearAgoPrice,
         oneMonthAgoPrice: oneMonthAgoPrice,
         latest_price: latestPrices[stock.ticker],
