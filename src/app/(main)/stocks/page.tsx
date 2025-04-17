@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Loading from "../Components/Loading";
+import { calculatePriceChange } from "@/utils/calculatePriceChange";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 interface Company {
   id: string;
@@ -79,31 +81,6 @@ export default function CompaniesPage() {
 
     fetchStocksData();
   }, []);
-
-  // Helper function to calculate price change over N days
-  const calculatePriceChange = (strLatestPrice: string, strHistoricalPrice: string): string => {
-    const latestPrice = Number.parseFloat(strLatestPrice);
-    const historicalPrice = Number.parseFloat(strHistoricalPrice);
-
-    // console.log(latestPrice)
-
-    if (!strLatestPrice || !strHistoricalPrice) return '0%';
-
-    const change = ((latestPrice - historicalPrice) / historicalPrice) * 100;
-    return change >= 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
-  };
-
-  const formatCurrency = (value: number): string => {
-    if (value >= 1e12) return `$${(value / 1e12).toFixed(1)}T`;
-    if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
-    if (value >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
 
   const handleRowClick = (companyId: string) => {
     router.push(`/stocks/${companyId}`);
