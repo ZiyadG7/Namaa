@@ -3,33 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import Loading from "../Components/Loading";
-
-type Article = {
-  uuid: string;
-  title: string;
-  description: string;
-  url: string;
-  image_url: string | null;
-  published_at: string;
-  source: string;
-  entities: {
-    symbol: string;
-    name: string;
-    exchange: string;
-    exchange_long: string;
-    country: string;
-    type: string;
-    industry: string;
-    match_score: number;
-    sentiment_score: number;
-    highlights: {
-      highlight: string;
-      sentiment: number;
-      highlighted_in: string;
-    }[];
-  }[];
-  snippet: string;
-};
+import { Article } from "@/types/article";
 
 export default function News() {
   const [news, setNews] = useState<Article[]>([]);
@@ -102,6 +76,7 @@ export default function News() {
                           : entity.sentiment_score > 0
                           ? "bg-green-200 dark:bg-green-900"
                           : "bg-gray-200 dark:bg-gray-900"
+
                       }`}
                     >
                       {entity.sentiment_score < 0
@@ -109,6 +84,7 @@ export default function News() {
                         : entity.sentiment_score > 0
                         ? "Positive"
                         : "Neutral"}
+
                     </span>
                   </div>
                 ))}

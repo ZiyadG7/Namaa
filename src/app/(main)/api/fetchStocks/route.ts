@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from '@/utils/supabase/server';
 
 export async function GET() {
   try {
@@ -27,13 +27,7 @@ export async function GET() {
         sector,
         shares_outstanding,
         company_name_arabic,
-        sector_arabic, 
-        prices:stock_prices(
-          price_id,
-          share_price,
-          market_cap,
-          date
-        ),
+        sector_arabic,
         financials:financials(
           financial_id,
           total_assets,
@@ -50,10 +44,7 @@ export async function GET() {
         user_follows ( user_id )
       `
       )
-      .order("date", { ascending: false, referencedTable: "stock_prices" })
-      .limit(1, { foreignTable: "prices" })
       .limit(1, { foreignTable: "financials" })
-      .limit(1, { foreignTable: "metrics" });
 
     if (error) {
       console.error("Supabase error:", error);
@@ -67,23 +58,19 @@ export async function GET() {
       return NextResponse.json({ error: "No stocks found" }, { status: 404 });
     }
 
-    // Fetch historical price data for change calculations.
-    const { data: historicalPrices } = await supabase
-      .from("stock_price")
-      .select("stock_id, share_price, date")
-      .order("date", { ascending: false })
-      .limit(365); // Get 1 year of data for calculations
+    const res = await fetch(`${process.env.SITE_URL}/api/fetchCurrentPrices`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    });
+        
+    const latestPrices = await res.json();
 
-    // Transform the data for the frontend, adding an is_followed flag for each stock.
-    const transformedStocks = stocks.map((stock: any) => {
-      const latestPrice = stock.prices?.[0];
-      const latestFinancial = stock.financials?.[0];
-      const latestMetric = stock.metrics?.[0];
-
-      // Get all prices for this stock
-      const stockPrices =
-        historicalPrices?.filter((p: any) => p.stock_id === stock.stock_id) ||
-        [];
+    // Calculate the date one year/month ago
+    let oneYearAgoDate = new Date();
+    let oneMonthAgoDate = new Date();
+    oneYearAgoDate.setFullYear(oneYearAgoDate.getFullYear() - 1);
+    oneYearAgoDate.setDate(1);
+    oneMonthAgoDate.setMonth(oneMonthAgoDate.getMonth() - 1)
 
       // Determine if this stock is followed by the current user
       let is_followed = false;
@@ -96,6 +83,26 @@ export async function GET() {
           (follow: any) => follow.user_id === user_id
         );
       }
+    
+    const oneYearAgoPrices = await supabase
+        .from("stock_prices")
+        .select("stock_id, share_price")
+        .eq("date", oneYearAgoDate.toISOString().split("T")[0]);
+
+    const oneMonthAgoPrices = await supabase
+        .from("stock_prices")
+        .select("stock_id, share_price")
+        .eq("date", oneMonthAgoDate.toISOString().split("T")[0]);
+
+    // Transform the data for the frontend
+    const transformedStocks = stocks.map((stock) => {
+      const latestFinancial = stock.financials?.[0];
+
+      const oneYearAgoPrice =
+        oneYearAgoPrices.data?.find((p) => p.stock_id === stock.stock_id)?.share_price || null;
+        
+    const oneMonthAgoPrice =
+        oneMonthAgoPrices.data?.find((p) => p.stock_id == stock.stock_id)?.share_price || null;
 
       return {
         stock_id: stock.stock_id,
@@ -105,11 +112,10 @@ export async function GET() {
         sector: stock.sector,
         sector_arabic: stock.sector_arabic,
         shares_outstanding: stock.shares_outstanding,
-        prices: stockPrices,
-        latest_price: latestPrice,
+        oneYearAgoPrice: oneYearAgoPrice,
+        oneMonthAgoPrice: oneMonthAgoPrice,
+        latest_price: latestPrices[stock.ticker],
         latest_financial: latestFinancial,
-        latest_metric: latestMetric,
-        is_followed, // This flag indicates if the current user follows the stock
       };
     });
 

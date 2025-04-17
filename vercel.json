@@ -3,6 +3,10 @@
     {
       "path": "/api/updateNews",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/automatedStocksPricesFetching",
+      "schedule": "20 12 * * *"                                
     }
   ]
 }

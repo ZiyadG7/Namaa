@@ -2,21 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FaHeart, FaRegHeart } from "react-icons/fa";
 import Loading from "../Components/Loading";
-
-interface Company {
-  id: number;
-  ticker: string;
-  name: string;
-  marketCap: string;
-  price: string;
-  change30D: string;
-  change1Y: string;
-  changeToday: string;
-  peRatio: string;
-  category: "followed" | "notFollowed";
-}
+import { calculatePriceChange } from "@/utils/calculatePriceChange";
+import { formatCurrency } from "@/utils/formatCurrency";
+import { Company } from '@/types/company';
 
 export default function CompaniesPage() {
   const router = useRouter();
@@ -46,27 +35,26 @@ export default function CompaniesPage() {
             share_price: 0,
           };
 
-          const sharesOutstanding = parseFloat(stock.shares_outstanding) || 0;
-          const sharePrice = parseFloat(latestPrice?.share_price) || 0;
-          const eps = parseFloat(stock.latest_metric?.eps) || 0;
 
-          const change30D = calculatePriceChange(stock.prices, 30);
-          const change1Y = calculatePriceChange(stock.prices, 365);
-          const changeToday = calculatePriceChange(stock.prices, 1);
+          // Calculate changes
+          const change30D = calculatePriceChange(latestPrices.price, stock.oneMonthAgoPrice);
+          const change1Y = calculatePriceChange(latestPrices.price, stock.oneYearAgoPrice);
+          const changeToday = calculatePriceChange(latestPrices.price, latestPrices.open);
 
-          const marketCapValue = sharePrice * sharesOutstanding;
           const peRatio = eps > 0 ? (sharePrice / eps).toFixed(1) : "N/A";
 
           return {
-            id: stock.stock_id,
-            ticker: stock.ticker,
+            id: stock.ticker,
             name: stock.company_name,
-            marketCap: formatCurrency(marketCapValue),
-            price: formatCurrency(sharePrice),
+            peRatio,
+            marketCap: formatCurrency(latestPrices.marketcap),
+            balance: formatCurrency(
+              financials.total_assets - financials.total_debt
+            ),
+            price: formatCurrency(latestPrices.price),
             change30D,
             change1Y,
             changeToday,
-            peRatio,
             category: stock.is_followed ? "followed" : "notFollowed",
           };
         });
@@ -83,38 +71,6 @@ export default function CompaniesPage() {
 
     fetchStocksData();
   }, []);
-
-  const calculatePriceChange = (prices: any[], days: number): string => {
-    if (!prices || prices.length < 2) return "0%";
-
-    const latestPrice = prices[0]?.share_price;
-    if (!latestPrice) return "0%";
-
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() - days);
-
-    const historicalPrice = prices.find((p: any) => {
-      const priceDate = new Date(p.date);
-      return priceDate <= targetDate;
-    })?.share_price;
-
-    if (!historicalPrice) return "0%";
-
-    const change = ((latestPrice - historicalPrice) / historicalPrice) * 100;
-    return change >= 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
-  };
-
-  const formatCurrency = (value: number): string => {
-    if (value >= 1e12) return `${(value / 1e12).toFixed(1)}T SAR`;
-    if (value >= 1e9) return ` ${(value / 1e9).toFixed(1)}B SAR`;
-    if (value >= 1e6) return ` ${(value / 1e6).toFixed(1)}M SAR`;
-    return new Intl.NumberFormat("en-SA", {
-      style: "currency",
-      currency: "SAR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
 
   const handleRowClick = (companyId: number) => {
     router.push(`/analysis/${companyId}`);
@@ -209,6 +165,10 @@ export default function CompaniesPage() {
     )
   );
 
+  const handleRowClick = (companyId: string) => {
+    router.push(`/stocks/${companyId}`);
+  };
+
   const renderTable = (stocks: Company[], title: string) => (
     <div className="mb-8">
       <h2 className="text-xl font-semibold mb-4 text-blue-900 dark:text-blue-300 underline decoration-blue-300 dark:decoration-gray-600 decoration-2 underline-offset-8">
@@ -293,6 +253,7 @@ export default function CompaniesPage() {
                     )}
                   </button>
                 </td>
+
               </tr>
             ))}
           </tbody>
