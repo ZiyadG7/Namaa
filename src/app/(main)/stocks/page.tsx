@@ -5,18 +5,7 @@ import { useEffect, useState } from "react";
 import Loading from "../Components/Loading";
 import { calculatePriceChange } from "@/utils/calculatePriceChange";
 import { formatCurrency } from "@/utils/formatCurrency";
-
-interface Company {
-  id: string;
-  name: string;
-  marketCap: string;
-  balance: string;
-  price: string;
-  change30D: string;
-  change1Y: string;
-  changeToday: string;
-  category: "followed" | "notFollowed";
-}
+import { Company } from '@/types/company';
 
 export default function CompaniesPage() {
   const router = useRouter();
