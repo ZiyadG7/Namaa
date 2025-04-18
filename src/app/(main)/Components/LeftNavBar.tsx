@@ -102,9 +102,9 @@ export default function LeftNavBar() {
             Roadmap
           </Link>
           <Link
-            href="/home"
+            href="/about"
             className={`flex items-center p-4 font-bold ${
-              pathname === "/home" || pathname.startsWith("/home/")
+              pathname === "/home" || pathname.startsWith("/about/")
                 ? "text-blue-500 dark:text-blue-400"
                 : "text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400"
             }`}
