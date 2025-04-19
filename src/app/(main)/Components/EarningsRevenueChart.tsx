@@ -18,18 +18,12 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
+import { formatCurrency } from "@/utils/formatters";
 
 type EarningsRevenueChartProps = {
   revenue: number;
   costOfRevenue: number;
   otherExpenses: number;
-};
-
-const formatSAR = (value: number): string => {
-  if (value >= 1e12) return `SAR${(value / 1e12).toFixed(2)}t`;
-  if (value >= 1e9) return `SAR${(value / 1e9).toFixed(2)}b`;
-  if (value >= 1e6) return `SAR${(value / 1e6).toFixed(2)}m`;
-  return `SAR${value.toLocaleString()}`;
 };
 
 export function EarningsRevenueChart({
@@ -47,7 +41,7 @@ export function EarningsRevenueChart({
       return (
         <div className="bg-white p-2 border rounded shadow">
           <p className="font-semibold">{item.label}</p>
-          <p className="text-sm">{formatSAR(item.actualValue || item.value)}</p>
+          <p className="text-sm">{formatCurrency(item.actualValue || item.value)}</p>
         </div>
       );
     }
@@ -111,7 +105,7 @@ export function EarningsRevenueChart({
   ];
 
   return (
-    <Card>
+    <Card className="font-SaudiRiyal">
       <CardHeader>
         <CardTitle>Earnings & Revenue</CardTitle>
         <CardDescription>
@@ -134,7 +128,7 @@ export function EarningsRevenueChart({
               tick={{ fontSize: 12 }}
             />
             <YAxis 
-              tickFormatter={formatSAR} 
+              tickFormatter={formatCurrency} 
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12 }}
@@ -208,7 +202,7 @@ export function EarningsRevenueChart({
                 className="w-4 h-4 rounded-sm" 
                 style={{ backgroundColor: item.fill }}
               />
-              <span>{item.label}: {formatSAR(item.actualValue || item.value)}</span>
+              <span>{item.label}: {formatCurrency(item.actualValue || item.value)}</span>
             </div>
           ))}
         </div>

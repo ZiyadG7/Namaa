@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import Loading from "../Components/Loading";
+import { formatCurrency } from "@/utils/formatters";
 
 interface Company {
   id: number;
@@ -104,14 +105,6 @@ export default function CompaniesPage() {
 
     const change = ((latestPrice - historicalPrice) / historicalPrice) * 100;
     return change >= 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
-  };
-
-  const formatCurrency = (value: number): string => {
-    if (value >= 1e12) return `\ue900${(value / 1e12).toFixed(1)}T`;
-    if (value >= 1e9) return `\ue900${(value / 1e9).toFixed(1)}B`;
-    if (value >= 1e6) return `\ue900${(value / 1e6).toFixed(1)}M`;
-    if (value >= 1e3) return `\ue900${(value / 1e3).toFixed(1)}K`;
-    return `\ue900${value}`
   };
 
   const handleRowClick = (companyId: number) => {

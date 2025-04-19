@@ -5,6 +5,7 @@ import MetricCard from "../../Components/MetricCard";
 import StockMetricsView from "../../Components/StockMetricsView";
 import { EarningsRevenueChart } from "../../Components/EarningsRevenueChart";
 import MetricGauge from "../../Components/MetricGauge";
+import { formatCurrency } from "@/utils/formatters";
 
 
 interface StockMetric {
@@ -287,20 +288,6 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
   const sectorFinancialAverages = calculateAverageFinancialRatios(sectorFinancials);
   const marketFinancialAverages = calculateAverageFinancialRatios(allFinancials);
 
-
-  const formatCurrency = (value: number): string => {
-    if (value >= 1e12) return `${(value / 1e12).toFixed(1)}T SAR`;
-    if (value >= 1e9) return ` ${(value / 1e9).toFixed(1)}B SAR`;
-    if (value >= 1e6) return ` ${(value / 1e6).toFixed(1)}M SAR`;
-    return new Intl.NumberFormat("en-SA", {
-      style: "currency",
-      currency: "SAR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
-
-
   
   // Prepare metrics for the view
   const stockMetrics: StockMetric[] = [
@@ -415,18 +402,18 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
             <p className="text-sm text-gray-400">Ticker: {company.ticker}</p>
           </div>
         </div>
-        <div className="mt-4 flex flex-wrap gap-6">
+        <div className="mt-4 flex flex-wrap gap-6 font-SaudiRiyal">
           <div>Sector: {company.sector}</div>
           <div>Market Cap: {formatCurrency(marketCap)}</div>
           <div>
             Shares Outstanding:{" "}
             {sharesOutstanding
-              ? sharesOutstanding.toLocaleString()
+              ? formatCurrency(sharesOutstanding)
               : "N/A"}
           </div>
           <div>
             Price:{" "}
-            {latestPrice ? `${latestPrice.toFixed(2)} SAR` : "N/A"}
+            {latestPrice ? `${formatCurrency(latestPrice.toFixed(2))}` : "N/A"}
           </div>
         </div>
       </div>
