@@ -5,8 +5,38 @@ import MetricCard from "../../Components/MetricCard";
 import StockMetricsView from "../../Components/StockMetricsView";
 import { EarningsRevenueChart } from "../../Components/EarningsRevenueChart";
 import MetricGauge from "../../Components/MetricGauge";
-import { formatCurrency } from "@/utils/formatters";
-import { StockMetric, StockMetricsData, Financial } from "@/types/common";
+import PriceOverTimeChart from "../../Components/PriceOverTimeChart";
+
+interface StockMetric {
+  title: string;
+  key: string;
+  value: number | null;
+  sector: number | null;
+  market: number | null;
+  isPercentage: boolean;
+}
+
+interface Financial {
+  stock_id: string;
+  total_revenue: number;
+  total_assets: number;
+  cost_of_revenue: number;
+  current_assets: number;
+  current_liabilities: number;
+  inventory: number;
+  ebit: number;
+  interest_expenses: number;
+  other_expenses: number;
+}
+
+interface StockMetricsData {
+  stock_id?: string;
+  return_on_equity: number;
+  return_on_assets: number;
+  payout_ratio: number;
+  eps: number;
+  trailing_annual_dividend_rate: number;
+}
 
 // Utility functions
 const calcRatio = (
@@ -350,6 +380,18 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
   const marketFinancialAverages =
     calculateAverageFinancialRatios(allFinancials);
 
+  const formatCurrency = (value: number): string => {
+    if (value >= 1e12) return `${(value / 1e12).toFixed(1)}T SAR`;
+    if (value >= 1e9) return ` ${(value / 1e9).toFixed(1)}B SAR`;
+    if (value >= 1e6) return ` ${(value / 1e6).toFixed(1)}M SAR`;
+    return new Intl.NumberFormat("en-SA", {
+      style: "currency",
+      currency: "SAR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
   // Prepare metrics for the view
   const stockMetrics: StockMetric[] = [
     {
@@ -453,50 +495,76 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
   return (
     <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
       {/* Company Overview */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-        <div className="flex items-center space-x-4">
-          <div className="bg-black rounded-full w-16 h-16 flex items-center justify-center text-white text-2xl font-bold">
-            {company.ticker?.[0]}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col md:flex-row gap-6">
+        <div className="md:w-2/3 space-y-6">
+          <div className="flex items-center space-x-6">
+            <div className="bg-black dark:bg-white text-white dark:text-black rounded-full w-20 h-20 flex items-center justify-center text-3xl font-bold shadow-md">
+              {company.ticker?.[0]}
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">{company.company_name}</h1>
+              <p className="text-base text-gray-600 dark:text-gray-300 mt-1">
+                Ticker: <span className="font-medium">{company.ticker}</span>
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold">{company.company_name}</h1>
-            <p className="text-sm text-gray-400">Ticker: {company.ticker}</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[15px]">
+            <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-md">
+              <strong>Sector:</strong> {company.sector}
+            </div>
+            <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-md">
+              <strong>Market Cap:</strong> {formatCurrency(marketCap)}
+            </div>
+            <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-md">
+              <strong>Shares Outstanding:</strong>{" "}
+              {sharesOutstanding.toLocaleString() ?? "N/A"}
+            </div>
+            <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-md">
+              <strong>Price:</strong>{" "}
+              {latestPrice ? `${latestPrice.toFixed(2)} SAR` : "N/A"}
+            </div>
           </div>
         </div>
-        <div className="mt-4 flex flex-wrap gap-6 font-SaudiRiyal">
-          <div>Sector: {company.sector}</div>
-          <div>Market Cap: {formatCurrency(marketCap)}</div>
-          <div>
-            Shares Outstanding:{" "}
-            {sharesOutstanding ? formatCurrency(sharesOutstanding) : "N/A"}
-          </div>
-          <div>
-            Price:{" "}
-            {latestPrice ? `${formatCurrency(latestPrice.toFixed(2))}` : "N/A"}
-          </div>
+
+        <div className="md:w-1/3 flex justify-center items-center">
+          <MetricGauge
+            title="Current Ratio Gauge"
+            company={currentRatio ?? 0}
+            sector={null}
+            market={null}
+            max={3}
+          />
         </div>
       </div>
 
-      {/* Metrics Section */}
       {metrics && (
-        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <MetricCard title="Earnings Per Share (EPS)" value={metrics.eps} />
-          <MetricCard
-            title="(P/E) Ratio"
-            value={
-              metrics.eps && metrics.eps > 0
-                ? (latestPrice / metrics.eps).toFixed(1)
-                : "N/A"
-            }
-          />
-          <MetricCard
-            title="Dividend Yield"
-            value={metrics.trailing_annual_dividend_rate}
-          />
-          <MetricCard
-            title="Return on Equity"
-            value={metrics.return_on_equity}
-          />
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Chart on the left */}
+          <div className="md:w-1/2 h-full min-h-[280px]">
+            <PriceOverTimeChart prices={prices ?? []} />
+          </div>
+
+          {/* Metric cards on the right */}
+          <div className="md:w-1/2 grid grid-cols-2 gap-4">
+            <MetricCard title="Earnings Per Share (EPS)" value={metrics.eps} />
+            <MetricCard
+              title="(P/E) Ratio"
+              value={
+                metrics.eps && metrics.eps > 0
+                  ? (latestPrice / metrics.eps).toFixed(1)
+                  : "N/A"
+              }
+            />
+            <MetricCard
+              title="Dividend Yield"
+              value={metrics.trailing_annual_dividend_rate}
+            />
+            <MetricCard
+              title="Return on Equity"
+              value={metrics.return_on_equity}
+            />
+          </div>
         </div>
       )}
 
@@ -507,14 +575,6 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
 
         {/* Metric Comparison Grid */}
         <StockMetricsView metrics={stockMetrics} />
-
-        <MetricGauge
-          title="Current Ratio Gauge"
-          company={currentRatio ?? 0}
-          sector={sectorFinancialAverages.avgCurrentRatio ?? 0}
-          market={marketFinancialAverages.avgCurrentRatio ?? 0}
-          max={3}
-        />
 
         <EarningsRevenueChart
           revenue={financials?.total_revenue}

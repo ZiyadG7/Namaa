@@ -8,8 +8,8 @@ import {
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
-  Rectangle,
   ReferenceLine,
+  Cell,
 } from "recharts";
 import {
   Card,
@@ -18,8 +18,19 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { formatCurrency } from "@/utils/formatters";
-import { EarningsRevenueChartProps } from "@/types/common";
+
+type EarningsRevenueChartProps = {
+  revenue: number;
+  costOfRevenue: number;
+  otherExpenses: number;
+};
+
+const formatSAR = (value: number): string => {
+  if (value >= 1e12) return `SAR ${(value / 1e12).toFixed(2)}T`;
+  if (value >= 1e9) return `SAR ${(value / 1e9).toFixed(2)}B`;
+  if (value >= 1e6) return `SAR ${(value / 1e6).toFixed(2)}M`;
+  return `SAR ${value.toLocaleString()}`;
+};
 
 export function EarningsRevenueChart({
   revenue,
@@ -29,95 +40,69 @@ export function EarningsRevenueChart({
   const grossProfit = revenue - costOfRevenue;
   const netIncome = grossProfit - otherExpenses;
 
-  // Custom tooltip to display the actual values
+  const data = [
+    {
+      label: "Revenue",
+      value: revenue,
+      actualValue: revenue,
+      fill: "#60a5fa",
+    },
+    {
+      label: "Cost of Revenue",
+      value: costOfRevenue,
+      actualValue: costOfRevenue,
+      fill: "#f87171",
+    },
+    {
+      label: "Gross Profit",
+      value: grossProfit,
+      actualValue: grossProfit,
+      fill: "#34d399",
+    },
+    {
+      label: "Other Expenses",
+      value: otherExpenses,
+      actualValue: otherExpenses,
+      fill: "#fb923c",
+    },
+    {
+      label: "Net Income",
+      value: netIncome,
+      actualValue: netIncome,
+      fill: "#818cf8",
+    },
+  ];
+
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const item = payload[0].payload;
       return (
-        <div className="bg-white p-2 border rounded shadow">
+        <div className="bg-white dark:bg-gray-800 p-2 border rounded shadow text-sm">
           <p className="font-semibold">{item.label}</p>
-          <p className="text-sm">
-            {formatCurrency(item.actualValue || item.value)}
-          </p>
+          <p>{formatSAR(item.actualValue)}</p>
         </div>
       );
     }
     return null;
   };
 
-  // Create data for a waterfall-style chart
-  const data = [
-    {
-      label: "Revenue",
-      value: revenue,
-      actualValue: revenue,
-      fill: "#3b82f6",
-      type: "normal",
-      // Starting point for the first bar
-      y0: 0,
-      y1: revenue,
-    },
-    {
-      label: "Cost of Revenue",
-      // For visualization, we use negative value
-      value: -costOfRevenue,
-      actualValue: costOfRevenue,
-      fill: "#dc2626",
-      type: "negative",
-      // The cost starts from the top of revenue and goes down by costOfRevenue
-      y0: revenue,
-      y1: revenue - costOfRevenue,
-    },
-    {
-      label: "Gross Profit",
-      value: grossProfit,
-      actualValue: grossProfit,
-      fill: "#22c55e",
-      type: "normal",
-      // Gross profit starts from where cost of revenue ended
-      y0: revenue - costOfRevenue,
-      y1: revenue - costOfRevenue,
-    },
-    {
-      label: "Other Expenses",
-      // For visualization, we use negative value
-      value: -otherExpenses,
-      actualValue: otherExpenses,
-      fill: "#b91c1c",
-      type: "negative",
-      // Other expenses start from gross profit and go down by otherExpenses
-      y0: grossProfit,
-      y1: grossProfit - otherExpenses,
-    },
-    {
-      label: "Net Income",
-      value: netIncome,
-      actualValue: netIncome,
-      fill: "#67e8f9",
-      type: "normal",
-      // Net income starts from where other expenses ended
-      y0: grossProfit - otherExpenses,
-      y1: grossProfit - otherExpenses,
-    },
-  ];
-
   return (
-    <Card className="font-SaudiRiyal">
+    <Card className="bg-white dark:bg-gray-800 shadow-sm">
       <CardHeader>
-        <CardTitle>Earnings & Revenue</CardTitle>
+        <CardTitle className="text-lg">Earnings & Revenue</CardTitle>
         <CardDescription>
-          Visual breakdown of key financial metrics
+          Visual breakdown of revenue, profit, and expenses
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%" height={320}>
           <BarChart
             data={data}
-            margin={{ top: 20, right: 30, left: 30, bottom: 10 }}
-            barGap={0}
-            barCategoryGap={20}
+            margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+            barGap={8}
+            barCategoryGap={30}
           >
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="label"
               tickLine={false}
@@ -125,74 +110,22 @@ export function EarningsRevenueChart({
               tick={{ fontSize: 12 }}
             />
             <YAxis
-              tickFormatter={formatCurrency}
+              tickFormatter={formatSAR}
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12 }}
             />
             <Tooltip content={<CustomTooltip />} />
-            <ReferenceLine y={0} stroke="#666" />
-            <Bar
-              dataKey="value"
-              shape={({ x, y, width, height, payload }: any) => {
-                // Base position for the bar
-                let barY, barHeight;
-
-                switch (payload.label) {
-                  case "Revenue":
-                    // Regular bar from 0 to revenue
-                    barY = y;
-                    barHeight = height;
-                    break;
-
-                  case "Cost of Revenue":
-                    // Negative bar starting from Revenue level
-                    barY = 0; // Start from Revenue level (top)
-                    barHeight = Math.abs(-height); // Height = costOfRevenue
-                    break;
-
-                  case "Gross Profit":
-                    // Regular bar at Gross Profit level (Revenue - Cost)
-                    barY = y;
-                    barHeight = height;
-                    break;
-
-                  case "Other Expenses":
-                    // Negative bar starting from Gross Profit level
-                    barY = 0; // Start from Gross Profit level
-                    barHeight = Math.abs(-height); // Height = otherExpenses
-                    break;
-
-                  case "Net Income":
-                    // Regular bar at Net Income level
-                    barY = y;
-                    barHeight = height;
-                    break;
-
-                  default:
-                    barY = y;
-                    barHeight = height;
-                }
-
-                return (
-                  <Rectangle
-                    x={x}
-                    y={barY}
-                    width={width}
-                    height={barHeight}
-                    fill={payload.fill}
-                    stroke="none"
-                    radius={[4, 4, 0, 0]}
-                  />
-                );
-              }}
-              isAnimationActive={true}
-            />
+            <ReferenceLine y={0} stroke="#888" />
+            <Bar dataKey="value">
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.fill} />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
 
-        {/* Legend */}
-        <div className="flex flex-wrap justify-center gap-4 mt-4">
+        <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm">
           {data.map((item) => (
             <div key={item.label} className="flex items-center gap-2">
               <div
@@ -200,7 +133,7 @@ export function EarningsRevenueChart({
                 style={{ backgroundColor: item.fill }}
               />
               <span>
-                {item.label}: {formatCurrency(item.actualValue || item.value)}
+                {item.label}: {formatSAR(item.actualValue)}
               </span>
             </div>
           ))}
