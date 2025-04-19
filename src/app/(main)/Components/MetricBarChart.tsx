@@ -4,14 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Bar, BarChart, CartesianGrid, Rectangle, XAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { TrendingUp } from "lucide-react";
-
-type MetricBarChartProps = {
-  title: string;
-  company: number | null;
-  sector: number | null;
-  market: number | null;
-  isPercentage?: boolean;
-};
+import { MetricBarChartProps } from '@/types/common'
 
 export function MetricBarChart({
   title,

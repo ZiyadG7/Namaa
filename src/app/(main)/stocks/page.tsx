@@ -5,19 +5,7 @@ import { useEffect, useState } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import Loading from "../Components/Loading";
 import { formatCurrency } from "@/utils/formatters";
-
-interface Company {
-  id: number;
-  ticker: string;
-  name: string;
-  marketCap: string;
-  price: string;
-  change30D: string;
-  change1Y: string;
-  changeToday: string;
-  peRatio: string;
-  category: "followed" | "notFollowed";
-}
+import { Company } from '@/types/common'
 
 export default function CompaniesPage() {
   const router = useRouter();

@@ -16,15 +16,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-
-type MetricRadialChartProps = {
-  title: string;
-  description?: string;
-  company: number | null;
-  sector: number | null;
-  market: number | null;
-  isPercentage?: boolean;
-};
+import { MetricRadialChartProps } from '@/types/common'
 
 const format = (v: number | null) =>
   typeof v === "number" && !isNaN(v) ? Number(v.toFixed(2)) : 0;

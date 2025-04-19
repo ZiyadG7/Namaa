@@ -2,15 +2,7 @@
 
 import { useState } from "react";
 import { MetricToggleBlock } from "./MetricToggleBlock";
-
-type MetricSet = {
-  title: string;
-  key: string;
-  value: number | null;
-  sector: number | null;
-  market: number | null;
-  isPercentage?: boolean;
-};
+import { MetricSet } from '@/types/common'
 
 export default function StockMetricsView({ metrics }: { metrics: MetricSet[] }) {
   const [globalView, setGlobalView] = useState<"chart" | "card">("chart");

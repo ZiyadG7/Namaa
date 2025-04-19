@@ -3,17 +3,7 @@
 import MetricCard  from "./MetricCard";
 import { MetricBarChart } from "./MetricBarChart";
 import { Button } from "@/components/ui/button";
-
-type Props = {
-  title: string;
-  keyName: string; // e.g. "roe"
-  value: number | null;
-  sector: number | null;
-  market: number | null;
-  isPercentage?: boolean;
-  view: "chart" | "card";
-  onToggle?: () => void;
-};
+import { MetricToggleBlockProps } from '@/types/common'
 
 export const MetricToggleBlock = ({
   title,
@@ -24,7 +14,7 @@ export const MetricToggleBlock = ({
   isPercentage,
   view,
   onToggle,
-}: Props) => {
+}: MetricToggleBlockProps) => {
   return (
     <div className="relative">
       {view === "chart" ? (

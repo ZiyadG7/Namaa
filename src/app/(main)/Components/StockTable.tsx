@@ -2,14 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-
-interface Stock {
-  ticker: string;
-  company_name: string;
-  share_price: number;
-  number_of_stocks: number;
-  sector?: string;
-}
+import { Stock } from '@/types/common' 
 
 interface StockTableProps {
   stocks: Stock[];

@@ -5,14 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Loading from "../Components/Loading";
 import StockRiskTable from "../Components/StockRiskTable";
-
-
-type Stock = {
-  name: string;
-  ticker: string;
-  risk: "Low" | "Medium" | "High";
-  sector: string;
-};
+import { Stock } from "@/types/common";
 
 function splitAiOutput(aiResponse: string): {
   categorizedStocks: any[];
@@ -20,7 +13,6 @@ function splitAiOutput(aiResponse: string): {
 } {
   const jsonStart = aiResponse.indexOf("[");
   const jsonEnd = aiResponse.indexOf("]") + 1;
-
 
   const jsonString = aiResponse.slice(jsonStart, jsonEnd);
   const recommendation = aiResponse.slice(jsonEnd, -3).trim();
@@ -39,15 +31,13 @@ function splitAiOutput(aiResponse: string): {
   };
 }
 
-
-export const stockData:Stock[] = [
+export const stockData: Stock[] = [
   { name: "Apple Inc.", ticker: "AAPL", risk: "Low", sector: "Tech" },
   { name: "Tesla Inc.", ticker: "TSLA", risk: "High", sector: "Auto" },
   { name: "Pfizer Inc.", ticker: "PFE", risk: "Medium", sector: "Healthcare" },
   { name: "Amazon.com", ticker: "AMZN", risk: "Medium", sector: "E-Commerce" },
   { name: "Bank of America", ticker: "BAC", risk: "Low", sector: "Finance" },
 ];
-
 
 export default function AssistantPage() {
   const [portfolio, setPortfolio] = useState<any[]>([]);
@@ -159,7 +149,6 @@ export default function AssistantPage() {
                 <td className="px-4 py-2">{item.sector}</td>
                 <td className="px-4 py-2">${item.share_price}</td>
                 <td className="px-4 py-2">{item.number_of_stocks}</td>
-
               </tr>
             ))}
             {portfolio.length === 0 && (
@@ -181,23 +170,29 @@ export default function AssistantPage() {
               <p className="text-blue-500">AI is generating results...</p>
             </div>
           ) : actionResponse ? (
-            actionResponse.action == 'risk' ? (
+            actionResponse.action == "risk" ? (
               <div>
-                <StockRiskTable stocks={splitAiOutput(actionResponse.content).categorizedStocks} /> 
-                <div>{splitAiOutput(actionResponse.content).recommendation}</div>
+                <StockRiskTable
+                  stocks={
+                    splitAiOutput(actionResponse.content).categorizedStocks
+                  }
+                />
+                <div>
+                  {splitAiOutput(actionResponse.content).recommendation}
+                </div>
                 {/* <div>{actionResponse.content}</div> */}
               </div>
-          ) : (
-            <>
-              <h2 className="text-2xl font-bold mb-4 text-blue-600 dark:text-blue-400 capitalize">
-                {actionResponse.action}
-              </h2>
-              <div className="space-y-3 leading-relaxed text-gray-800 dark:text-gray-200">
-                {actionResponse.content.split("\n").map((line, idx) => (
-                  <p key={idx}>{line}</p>
-                ))}
-              </div>
-            </>
+            ) : (
+              <>
+                <h2 className="text-2xl font-bold mb-4 text-blue-600 dark:text-blue-400 capitalize">
+                  {actionResponse.action}
+                </h2>
+                <div className="space-y-3 leading-relaxed text-gray-800 dark:text-gray-200">
+                  {actionResponse.content.split("\n").map((line, idx) => (
+                    <p key={idx}>{line}</p>
+                  ))}
+                </div>
+              </>
             )
           ) : null}
         </div>

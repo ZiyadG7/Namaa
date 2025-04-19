@@ -1,10 +1,5 @@
 import React from "react";
-
-interface MetricCardProps {
-  title: string;
-  value: string | number | null | undefined;
-  suffix?: string;
-}
+import { MetricCardProps } from '@/types/common'
 
 const MetricCard: React.FC<MetricCardProps> = ({ title, value, suffix = "" }) => {
   const number = typeof value === "number" ? value : parseFloat(value ?? "0");

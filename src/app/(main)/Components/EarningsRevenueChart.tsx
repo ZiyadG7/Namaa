@@ -19,12 +19,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { formatCurrency } from "@/utils/formatters";
-
-type EarningsRevenueChartProps = {
-  revenue: number;
-  costOfRevenue: number;
-  otherExpenses: number;
-};
+import { EarningsRevenueChartProps } from "@/types/common";
 
 export function EarningsRevenueChart({
   revenue,
@@ -41,7 +36,9 @@ export function EarningsRevenueChart({
       return (
         <div className="bg-white p-2 border rounded shadow">
           <p className="font-semibold">{item.label}</p>
-          <p className="text-sm">{formatCurrency(item.actualValue || item.value)}</p>
+          <p className="text-sm">
+            {formatCurrency(item.actualValue || item.value)}
+          </p>
         </div>
       );
     }
@@ -64,7 +61,7 @@ export function EarningsRevenueChart({
       label: "Cost of Revenue",
       // For visualization, we use negative value
       value: -costOfRevenue,
-      actualValue: costOfRevenue, 
+      actualValue: costOfRevenue,
       fill: "#dc2626",
       type: "negative",
       // The cost starts from the top of revenue and goes down by costOfRevenue
@@ -84,7 +81,7 @@ export function EarningsRevenueChart({
     {
       label: "Other Expenses",
       // For visualization, we use negative value
-      value: -otherExpenses, 
+      value: -otherExpenses,
       actualValue: otherExpenses,
       fill: "#b91c1c",
       type: "negative",
@@ -97,7 +94,7 @@ export function EarningsRevenueChart({
       value: netIncome,
       actualValue: netIncome,
       fill: "#67e8f9",
-      type: "normal", 
+      type: "normal",
       // Net income starts from where other expenses ended
       y0: grossProfit - otherExpenses,
       y1: grossProfit - otherExpenses,
@@ -114,21 +111,21 @@ export function EarningsRevenueChart({
       </CardHeader>
       <CardContent className="pt-0">
         <ResponsiveContainer width="100%" height={400}>
-          <BarChart 
+          <BarChart
             data={data}
             margin={{ top: 20, right: 30, left: 30, bottom: 10 }}
             barGap={0}
             barCategoryGap={20}
           >
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis 
-              dataKey="label" 
-              tickLine={false} 
-              axisLine={false} 
+            <XAxis
+              dataKey="label"
+              tickLine={false}
+              axisLine={false}
               tick={{ fontSize: 12 }}
             />
-            <YAxis 
-              tickFormatter={formatCurrency} 
+            <YAxis
+              tickFormatter={formatCurrency}
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12 }}
@@ -140,43 +137,43 @@ export function EarningsRevenueChart({
               shape={({ x, y, width, height, payload }: any) => {
                 // Base position for the bar
                 let barY, barHeight;
-                
+
                 switch (payload.label) {
                   case "Revenue":
                     // Regular bar from 0 to revenue
                     barY = y;
                     barHeight = height;
                     break;
-                  
+
                   case "Cost of Revenue":
                     // Negative bar starting from Revenue level
                     barY = 0; // Start from Revenue level (top)
                     barHeight = Math.abs(-height); // Height = costOfRevenue
                     break;
-                  
+
                   case "Gross Profit":
                     // Regular bar at Gross Profit level (Revenue - Cost)
                     barY = y;
                     barHeight = height;
                     break;
-                  
+
                   case "Other Expenses":
                     // Negative bar starting from Gross Profit level
                     barY = 0; // Start from Gross Profit level
                     barHeight = Math.abs(-height); // Height = otherExpenses
                     break;
-                  
+
                   case "Net Income":
                     // Regular bar at Net Income level
                     barY = y;
                     barHeight = height;
                     break;
-                  
+
                   default:
                     barY = y;
                     barHeight = height;
                 }
-                
+
                 return (
                   <Rectangle
                     x={x}
@@ -193,16 +190,18 @@ export function EarningsRevenueChart({
             />
           </BarChart>
         </ResponsiveContainer>
-        
+
         {/* Legend */}
         <div className="flex flex-wrap justify-center gap-4 mt-4">
           {data.map((item) => (
             <div key={item.label} className="flex items-center gap-2">
-              <div 
-                className="w-4 h-4 rounded-sm" 
+              <div
+                className="w-4 h-4 rounded-sm"
                 style={{ backgroundColor: item.fill }}
               />
-              <span>{item.label}: {formatCurrency(item.actualValue || item.value)}</span>
+              <span>
+                {item.label}: {formatCurrency(item.actualValue || item.value)}
+              </span>
             </div>
           ))}
         </div>

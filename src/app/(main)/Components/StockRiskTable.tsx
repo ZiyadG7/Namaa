@@ -1,17 +1,7 @@
 // components/StockRiskTable.tsx
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-type Stock = {
-  name: string;
-  ticker: string;
-  risk: "Low" | "Medium" | "High";
-  sector: string;
-};
-
-type Props = {
-  stocks: Stock[];
-};
+import { StockRisk } from '@/types/common'
 
 const riskColors = {
   Low: "bg-green-200 text-green-700",
@@ -19,8 +9,8 @@ const riskColors = {
   High: "bg-red-200 text-red-700",
 };
 
-export default function StockRiskTable({ stocks }: Props) {
-  const groupedStocks = stocks.reduce((acc: Record<string, Stock[]>, stock) => {
+export default function StockRiskTable({ stocks }: {stocks:StockRisk[]}) {
+  const groupedStocks = stocks.reduce((acc: Record<string, StockRisk[]>, stock) => {
     acc[stock.risk] = acc[stock.risk] || [];
     acc[stock.risk].push(stock);
     return acc;

@@ -4,17 +4,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Loading from "../Components/Loading";
 
-interface Company {
-  id: string;
-  name: string;
-  marketCap: string;
-  balance: string;
-  price: string;
-  change30D: string;
-  change1Y: string;
-  changeToday: string;
-  category: "followed" | "notFollowed";
-}
 
 export default function CompaniesPage() {
   const router = useRouter();

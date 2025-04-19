@@ -6,106 +6,127 @@ import StockMetricsView from "../../Components/StockMetricsView";
 import { EarningsRevenueChart } from "../../Components/EarningsRevenueChart";
 import MetricGauge from "../../Components/MetricGauge";
 import { formatCurrency } from "@/utils/formatters";
-
-
-interface StockMetric {
-  title: string;
-  key: string;
-  value: number | null;
-  sector: number | null;
-  market: number | null;
-  isPercentage: boolean;
-}
-
-interface Financial {
-  stock_id: string;
-  total_revenue: number;
-  total_assets: number;
-  cost_of_revenue: number;
-  current_assets: number;
-  current_liabilities: number;
-  inventory: number;
-  ebit: number;
-  interest_expenses: number;
-  other_expenses: number;
-}
-
-interface StockMetricsData {
-  stock_id?: string;
-  return_on_equity: number;
-  return_on_assets: number;
-  payout_ratio: number;
-  eps: number;
-  trailing_annual_dividend_rate: number;
-}
-
+import { StockMetric, StockMetricsData, Financial } from "@/types/common";
 
 // Utility functions
-const calcRatio = (a: number | null, b: number | null, options?: { allowZeroB?: boolean }): number | null => {
+const calcRatio = (
+  a: number | null,
+  b: number | null,
+  options?: { allowZeroB?: boolean }
+): number | null => {
   if (a == null || b == null) return null;
   if (!options?.allowZeroB && b === 0) return null;
   const result = a / b;
   return isFinite(result) && !isNaN(result) ? result : null;
 };
 
-
-const avg = (arr: number[]): number | null => 
+const avg = (arr: number[]): number | null =>
   arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
 
-const filterNonNullNumbers = (values: (number | null)[]): number[] => 
+const filterNonNullNumbers = (values: (number | null)[]): number[] =>
   values.filter((v): v is number => v !== null && !isNaN(v));
 
 const calculateFinancialRatios = (financial: Financial | null) => {
-  if (!financial) return { grossMargin: null, netMargin: null, assetTurnover: null, currentRatio: null, quickRatio: null, interestCoverage: null };
-  
+  if (!financial)
+    return {
+      grossMargin: null,
+      netMargin: null,
+      assetTurnover: null,
+      currentRatio: null,
+      quickRatio: null,
+      interestCoverage: null,
+    };
+
   const grossProfit = financial.total_revenue - financial.cost_of_revenue;
   const netIncome = grossProfit - financial.other_expenses;
-  
+
   return {
     grossProfit,
     netIncome,
     grossMargin: calcRatio(grossProfit, financial.total_revenue),
     netMargin: calcRatio(netIncome, financial.total_revenue),
     assetTurnover: calcRatio(financial.total_revenue, financial.total_assets),
-    currentRatio: calcRatio(financial.current_assets, financial.current_liabilities),
-    quickRatio: calcRatio(financial.current_assets - financial.inventory, financial.current_liabilities),
-    interestCoverage: calcRatio(financial.ebit, financial.interest_expenses)
+    currentRatio: calcRatio(
+      financial.current_assets,
+      financial.current_liabilities
+    ),
+    quickRatio: calcRatio(
+      financial.current_assets - financial.inventory,
+      financial.current_liabilities
+    ),
+    interestCoverage: calcRatio(financial.ebit, financial.interest_expenses),
   };
 };
 
 const calculateAverageMetrics = (metrics: StockMetricsData[] | null) => {
-  if (!metrics) return { avgROE: null, avgROA: null, avgEPS: null, avgPayout: null, avgDividendYield: null };
-  
+  if (!metrics)
+    return {
+      avgROE: null,
+      avgROA: null,
+      avgEPS: null,
+      avgPayout: null,
+      avgDividendYield: null,
+    };
+
   return {
-    avgROE: avg(filterNonNullNumbers(metrics.map(m => Number(m.return_on_equity)))),
-    avgROA: avg(filterNonNullNumbers(metrics.map(m => Number(m.return_on_assets)))),
-    avgEPS: avg(filterNonNullNumbers(metrics.map(m => Number(m.eps)))),
-    avgPayout: avg(filterNonNullNumbers(metrics.map(m => Number(m.payout_ratio)))),
-    avgDividendYield: avg(filterNonNullNumbers(metrics.map(m => Number(m.trailing_annual_dividend_rate))))
+    avgROE: avg(
+      filterNonNullNumbers(metrics.map((m) => Number(m.return_on_equity)))
+    ),
+    avgROA: avg(
+      filterNonNullNumbers(metrics.map((m) => Number(m.return_on_assets)))
+    ),
+    avgEPS: avg(filterNonNullNumbers(metrics.map((m) => Number(m.eps)))),
+    avgPayout: avg(
+      filterNonNullNumbers(metrics.map((m) => Number(m.payout_ratio)))
+    ),
+    avgDividendYield: avg(
+      filterNonNullNumbers(
+        metrics.map((m) => Number(m.trailing_annual_dividend_rate))
+      )
+    ),
   };
 };
 
 const calculateAverageFinancialRatios = (financials: Financial[] | null) => {
-  if (!financials) return { 
-    avgAssetTurnover: null, avgCurrentRatio: null, avgQuickRatio: null, 
-    avgInterestCoverage: null, avgGrossMargin: null, avgNetMargin: null 
-  };
-  
-  const assetTurnovers = financials.map(f => calcRatio(f.total_revenue, f.total_assets));
-  const currentRatios = financials.map(f => calcRatio(f.current_assets, f.current_liabilities));
-  const quickRatios = financials.map(f => calcRatio(f.current_assets - f.inventory, f.current_liabilities));
-  const interestCoverages = financials.map(f => calcRatio(f.ebit, f.interest_expenses));
-  const grossMargins = financials.map(f => calcRatio(f.total_revenue - f.cost_of_revenue, f.total_revenue));
-  const netMargins = financials.map(f => 
-    calcRatio(f.total_revenue - f.cost_of_revenue - f.other_expenses, f.total_revenue));
-  
+  if (!financials)
+    return {
+      avgAssetTurnover: null,
+      avgCurrentRatio: null,
+      avgQuickRatio: null,
+      avgInterestCoverage: null,
+      avgGrossMargin: null,
+      avgNetMargin: null,
+    };
+
+  const assetTurnovers = financials.map((f) =>
+    calcRatio(f.total_revenue, f.total_assets)
+  );
+  const currentRatios = financials.map((f) =>
+    calcRatio(f.current_assets, f.current_liabilities)
+  );
+  const quickRatios = financials.map((f) =>
+    calcRatio(f.current_assets - f.inventory, f.current_liabilities)
+  );
+  const interestCoverages = financials.map((f) =>
+    calcRatio(f.ebit, f.interest_expenses)
+  );
+  const grossMargins = financials.map((f) =>
+    calcRatio(f.total_revenue - f.cost_of_revenue, f.total_revenue)
+  );
+  const netMargins = financials.map((f) =>
+    calcRatio(
+      f.total_revenue - f.cost_of_revenue - f.other_expenses,
+      f.total_revenue
+    )
+  );
+
   return {
     avgAssetTurnover: avg(filterNonNullNumbers(assetTurnovers)),
     avgCurrentRatio: avg(filterNonNullNumbers(currentRatios)),
     avgQuickRatio: avg(filterNonNullNumbers(quickRatios)),
     avgInterestCoverage: avg(filterNonNullNumbers(interestCoverages)),
     avgGrossMargin: avg(filterNonNullNumbers(grossMargins)),
-    avgNetMargin: avg(filterNonNullNumbers(netMargins))
+    avgNetMargin: avg(filterNonNullNumbers(netMargins)),
   };
 };
 
@@ -116,7 +137,7 @@ const fetchCompanyData = async (supabase: any, companyId: string) => {
     .select("*")
     .eq("stock_id", companyId)
     .single();
-  
+
   return company;
 };
 
@@ -128,7 +149,7 @@ const fetchCompanyMetrics = async (supabase: any, companyId: string) => {
     .order("date", { ascending: false })
     .limit(1)
     .single();
-  
+
   return metrics;
 };
 
@@ -139,7 +160,7 @@ const fetchCompanyPrices = async (supabase: any, companyId: string) => {
     .eq("stock_id", companyId)
     .order("date", { ascending: true })
     .limit(7);
-  
+
   return prices;
 };
 
@@ -149,7 +170,7 @@ const fetchCompanyFinancials = async (supabase: any, companyId: string) => {
     .select("*")
     .eq("stock_id", companyId)
     .single();
-  
+
   return financials;
 };
 
@@ -157,35 +178,46 @@ const fetchSectorStocks = async (supabase: any, sector: string) => {
   const { data: allStocks } = await supabase
     .from("stocks")
     .select("stock_id, sector");
-  
-  return allStocks?.filter(s => s.sector === sector).map(s => s.stock_id) ?? [];
+
+  return (
+    allStocks?.filter((s) => s.sector === sector).map((s) => s.stock_id) ?? []
+  );
 };
 
 const fetchAllFinancials = async (supabase: any) => {
   const { data: allFinancials } = await supabase
     .from("financials")
-    .select("stock_id, total_revenue, total_assets, cost_of_revenue, current_assets, current_liabilities, inventory, ebit, interest_expenses, other_expenses");
-  
+    .select(
+      "stock_id, total_revenue, total_assets, cost_of_revenue, current_assets, current_liabilities, inventory, ebit, interest_expenses, other_expenses"
+    );
+
   return allFinancials;
 };
 
 const fetchSectorMetrics = async (supabase: any, sectorStockIds: string[]) => {
   const { data: sectorMetrics } = await supabase
     .from("stock_metrics")
-    .select("stock_id, return_on_equity, return_on_assets, payout_ratio, eps, trailing_annual_dividend_rate")
+    .select(
+      "stock_id, return_on_equity, return_on_assets, payout_ratio, eps, trailing_annual_dividend_rate"
+    )
     .in("stock_id", sectorStockIds);
-  
+
   return sectorMetrics;
 };
 
 const fetchMarketMetrics = async (supabase: any) => {
   const { data: marketMetrics } = await supabase
     .from("stock_metrics")
-    .select("return_on_equity, return_on_assets, payout_ratio, eps, trailing_annual_dividend_rate");
-  
+    .select(
+      "return_on_equity, return_on_assets, payout_ratio, eps, trailing_annual_dividend_rate"
+    );
+
   return marketMetrics;
 };
-const fetchLatestMetricsForStocks = async (supabase: any, stockIds: string[]) => {
+const fetchLatestMetricsForStocks = async (
+  supabase: any,
+  stockIds: string[]
+) => {
   const { data } = await supabase
     .from("stock_metrics")
     .select("stock_id, eps, date")
@@ -201,7 +233,10 @@ const fetchLatestMetricsForStocks = async (supabase: any, stockIds: string[]) =>
   return latestByStock;
 };
 
-const fetchLatestPricesForStocks = async (supabase: any, stockIds: string[]) => {
+const fetchLatestPricesForStocks = async (
+  supabase: any,
+  stockIds: string[]
+) => {
   const { data } = await supabase
     .from("stock_prices")
     .select("stock_id, share_price, date")
@@ -217,7 +252,10 @@ const fetchLatestPricesForStocks = async (supabase: any, stockIds: string[]) => 
   return latestPrices;
 };
 
-const computeAveragePE = (prices: Record<string, number>, epsMap: Record<string, number>) => {
+const computeAveragePE = (
+  prices: Record<string, number>,
+  epsMap: Record<string, number>
+) => {
   const peValues: number[] = [];
 
   for (const stockId of Object.keys(prices)) {
@@ -238,25 +276,37 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
   // Fetch company data
   const company = await fetchCompanyData(supabase, companyId);
   if (!company) {
-    return <div className="text-red-500 p-6">Failed to fetch data for company ID: {companyId}</div>;
+    return (
+      <div className="text-red-500 p-6">
+        Failed to fetch data for company ID: {companyId}
+      </div>
+    );
   }
 
   // Fetch company specific data
   const metrics = await fetchCompanyMetrics(supabase, companyId);
   const prices = await fetchCompanyPrices(supabase, companyId);
   const financials = await fetchCompanyFinancials(supabase, companyId);
-  
+
   // Calculate financial ratios for the company
   const {
-    grossProfit, netIncome, grossMargin, netMargin, assetTurnover,
-    currentRatio, quickRatio, interestCoverage
+    grossProfit,
+    netIncome,
+    grossMargin,
+    netMargin,
+    assetTurnover,
+    currentRatio,
+    quickRatio,
+    interestCoverage,
   } = calculateFinancialRatios(financials);
-  
+
   // Calculate PE ratio
   const latestPrice = prices?.[prices.length - 1]?.share_price;
-  const peRatio = latestPrice && metrics?.eps && Number(metrics.eps) !== 0 
-    ? latestPrice / Number(metrics.eps) : null;
-  
+  const peRatio =
+    latestPrice && metrics?.eps && Number(metrics.eps) !== 0
+      ? latestPrice / Number(metrics.eps)
+      : null;
+
   const dividendYield = metrics?.trailing_annual_dividend_rate ?? null;
 
   // Fetch sector and market data
@@ -266,29 +316,40 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
   const sectorMetrics = await fetchSectorMetrics(supabase, sectorStockIds);
   const marketMetrics = await fetchMarketMetrics(supabase);
 
-  const allStockIds = allFinancials.map(f => f.stock_id);
+  const allStockIds = allFinancials.map((f) => f.stock_id);
 
-  const sectorEPSMap = await fetchLatestMetricsForStocks(supabase, sectorStockIds);
-  const sectorPricesMap = await fetchLatestPricesForStocks(supabase, sectorStockIds);
+  const sectorEPSMap = await fetchLatestMetricsForStocks(
+    supabase,
+    sectorStockIds
+  );
+  const sectorPricesMap = await fetchLatestPricesForStocks(
+    supabase,
+    sectorStockIds
+  );
   const avgSectorPE = computeAveragePE(sectorPricesMap, sectorEPSMap);
 
   const marketEPSMap = await fetchLatestMetricsForStocks(supabase, allStockIds);
-  const marketPricesMap = await fetchLatestPricesForStocks(supabase, allStockIds);
+  const marketPricesMap = await fetchLatestPricesForStocks(
+    supabase,
+    allStockIds
+  );
   const avgMarketPE = computeAveragePE(marketPricesMap, marketEPSMap);
 
   const sharesOutstanding = Number(company.shares_outstanding) || 0;
   const marketCap = latestPrice * sharesOutstanding;
   // Filter financials by sector
-  const sectorFinancials = allFinancials?.filter(f => sectorStockIds.includes(f.stock_id)) ?? [];
+  const sectorFinancials =
+    allFinancials?.filter((f) => sectorStockIds.includes(f.stock_id)) ?? [];
 
   // Calculate sector and market averages
   const sectorMetricAverages = calculateAverageMetrics(sectorMetrics);
   const marketMetricAverages = calculateAverageMetrics(marketMetrics);
-  
-  const sectorFinancialAverages = calculateAverageFinancialRatios(sectorFinancials);
-  const marketFinancialAverages = calculateAverageFinancialRatios(allFinancials);
 
-  
+  const sectorFinancialAverages =
+    calculateAverageFinancialRatios(sectorFinancials);
+  const marketFinancialAverages =
+    calculateAverageFinancialRatios(allFinancials);
+
   // Prepare metrics for the view
   const stockMetrics: StockMetric[] = [
     {
@@ -407,9 +468,7 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
           <div>Market Cap: {formatCurrency(marketCap)}</div>
           <div>
             Shares Outstanding:{" "}
-            {sharesOutstanding
-              ? formatCurrency(sharesOutstanding)
-              : "N/A"}
+            {sharesOutstanding ? formatCurrency(sharesOutstanding) : "N/A"}
           </div>
           <div>
             Price:{" "}
@@ -443,26 +502,26 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
 
       {/* Chart Placeholders */}
       <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
-            {/* Company Overview */}
-            {/* ... Keep existing company UI */}
-      
-            {/* Metric Comparison Grid */}
-            <StockMetricsView metrics={stockMetrics} />
-            
-            <MetricGauge
-              title="Current Ratio Gauge"
-              company={currentRatio ?? 0}
-              sector={sectorFinancialAverages.avgCurrentRatio ?? 0}
-              market={marketFinancialAverages.avgCurrentRatio ?? 0}
-              max={3}
-            />
-      
-            <EarningsRevenueChart
-              revenue={financials?.total_revenue}
-              costOfRevenue={financials?.cost_of_revenue}
-              otherExpenses={financials?.other_expenses}
-            />
-          </div>
+        {/* Company Overview */}
+        {/* ... Keep existing company UI */}
+
+        {/* Metric Comparison Grid */}
+        <StockMetricsView metrics={stockMetrics} />
+
+        <MetricGauge
+          title="Current Ratio Gauge"
+          company={currentRatio ?? 0}
+          sector={sectorFinancialAverages.avgCurrentRatio ?? 0}
+          market={marketFinancialAverages.avgCurrentRatio ?? 0}
+          max={3}
+        />
+
+        <EarningsRevenueChart
+          revenue={financials?.total_revenue}
+          costOfRevenue={financials?.cost_of_revenue}
+          otherExpenses={financials?.other_expenses}
+        />
+      </div>
     </div>
   );
 };
