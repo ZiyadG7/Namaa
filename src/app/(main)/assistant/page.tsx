@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import Loading from "../Components/Loading";
 import StockRiskTable from "../Components/StockRiskTable";
 import { Stock } from "@/types/common";
+import { formatCurrency } from "@/utils/formatters";
 
 function splitAiOutput(aiResponse: string): {
   categorizedStocks: any[];
@@ -135,11 +136,11 @@ export default function AssistantPage() {
             {portfolio.map((item, index) => (
               <tr
                 key={index}
-                className="text-center border-t dark:border-gray-600"
+                className="text-center border-t dark:border-gray-600 font-SaudiRiyal"
               >
                 <td className="px-4 py-2">{item.company_name}</td>
                 <td className="px-4 py-2">{item.sector}</td>
-                <td className="px-4 py-2">${item.share_price}</td>
+                <td className="px-4 py-2">{formatCurrency(item.share_price)}</td>
                 <td className="px-4 py-2">{item.number_of_stocks}</td>
               </tr>
             ))}
