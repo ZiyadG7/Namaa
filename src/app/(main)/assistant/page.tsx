@@ -23,7 +23,7 @@ function splitAiOutput(aiResponse: string): {
 
 
   const jsonString = aiResponse.slice(jsonStart, jsonEnd);
-  const recommendation = aiResponse.slice(jsonEnd).trim();
+  const recommendation = aiResponse.slice(jsonEnd, -3).trim();
 
   let categorizedStocks: any[] = [];
 
