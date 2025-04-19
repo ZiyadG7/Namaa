@@ -4,6 +4,50 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Loading from "../Components/Loading";
+import StockRiskTable from "../Components/StockRiskTable";
+
+
+type Stock = {
+  name: string;
+  ticker: string;
+  risk: "Low" | "Medium" | "High";
+  sector: string;
+};
+
+function splitAiOutput(aiResponse: string): {
+  categorizedStocks: any[];
+  recommendation: string;
+} {
+  const jsonStart = aiResponse.indexOf("[");
+  const jsonEnd = aiResponse.indexOf("]") + 1;
+
+
+  const jsonString = aiResponse.slice(jsonStart, jsonEnd);
+  const recommendation = aiResponse.slice(jsonEnd).trim();
+
+  let categorizedStocks: any[] = [];
+
+  try {
+    categorizedStocks = JSON.parse(jsonString);
+  } catch (error) {
+    console.error("Error parsing JSON from AI response:", error);
+  }
+
+  return {
+    categorizedStocks,
+    recommendation,
+  };
+}
+
+
+export const stockData:Stock[] = [
+  { name: "Apple Inc.", ticker: "AAPL", risk: "Low", sector: "Tech" },
+  { name: "Tesla Inc.", ticker: "TSLA", risk: "High", sector: "Auto" },
+  { name: "Pfizer Inc.", ticker: "PFE", risk: "Medium", sector: "Healthcare" },
+  { name: "Amazon.com", ticker: "AMZN", risk: "Medium", sector: "E-Commerce" },
+  { name: "Bank of America", ticker: "BAC", risk: "Low", sector: "Finance" },
+];
+
 
 export default function AssistantPage() {
   const [portfolio, setPortfolio] = useState<any[]>([]);
@@ -133,10 +177,17 @@ export default function AssistantPage() {
       {(loading || actionResponse) && (
         <div className="w-full mx-auto mb-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
           {loading ? (
-            <div className="flex justify-center items-center h-24">
-              <Loading />
+            <div className="flex justify-center">
+              <p className="text-blue-500">AI is generating results...</p>
             </div>
           ) : actionResponse ? (
+            actionResponse.action == 'risk' ? (
+              <div>
+                <StockRiskTable stocks={splitAiOutput(actionResponse.content).categorizedStocks} /> 
+                <div>{splitAiOutput(actionResponse.content).recommendation}</div>
+                {/* <div>{actionResponse.content}</div> */}
+              </div>
+          ) : (
             <>
               <h2 className="text-2xl font-bold mb-4 text-blue-600 dark:text-blue-400 capitalize">
                 {actionResponse.action}
@@ -147,6 +198,7 @@ export default function AssistantPage() {
                 ))}
               </div>
             </>
+            )
           ) : null}
         </div>
       )}
