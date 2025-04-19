@@ -19,7 +19,7 @@ export default function LeftNavBar() {
     <nav className="w-56 bg-slate-50 dark:bg-gray-950 text-gray-500 dark:text-gray-300 fixed h-full p-4">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-blue-900 dark:text-white mt-1">
-          Namaan Insights
+          Namaa Insights
         </h1>
       </div>
       <div className="space-y-4 p-x4">
