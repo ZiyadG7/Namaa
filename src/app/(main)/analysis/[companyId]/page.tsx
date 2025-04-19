@@ -6,37 +6,8 @@ import StockMetricsView from "../../Components/StockMetricsView";
 import { EarningsRevenueChart } from "../../Components/EarningsRevenueChart";
 import MetricGauge from "../../Components/MetricGauge";
 import PriceOverTimeChart from "../../Components/PriceOverTimeChart";
-
-interface StockMetric {
-  title: string;
-  key: string;
-  value: number | null;
-  sector: number | null;
-  market: number | null;
-  isPercentage: boolean;
-}
-
-interface Financial {
-  stock_id: string;
-  total_revenue: number;
-  total_assets: number;
-  cost_of_revenue: number;
-  current_assets: number;
-  current_liabilities: number;
-  inventory: number;
-  ebit: number;
-  interest_expenses: number;
-  other_expenses: number;
-}
-
-interface StockMetricsData {
-  stock_id?: string;
-  return_on_equity: number;
-  return_on_assets: number;
-  payout_ratio: number;
-  eps: number;
-  trailing_annual_dividend_rate: number;
-}
+import { StockMetric, Financial, StockMetricsData } from "@/types/common";
+import { formatCurrency } from "@/utils/formatters";
 
 // Utility functions
 const calcRatio = (
@@ -380,17 +351,6 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
   const marketFinancialAverages =
     calculateAverageFinancialRatios(allFinancials);
 
-  const formatCurrency = (value: number): string => {
-    if (value >= 1e12) return `${(value / 1e12).toFixed(1)}T SAR`;
-    if (value >= 1e9) return ` ${(value / 1e9).toFixed(1)}B SAR`;
-    if (value >= 1e6) return ` ${(value / 1e6).toFixed(1)}M SAR`;
-    return new Intl.NumberFormat("en-SA", {
-      style: "currency",
-      currency: "SAR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
 
   // Prepare metrics for the view
   const stockMetrics: StockMetric[] = [
@@ -509,7 +469,7 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[15px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[15px] font-SaudiRiyal">
             <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-md">
               <strong>Sector:</strong> {company.sector}
             </div>
@@ -518,11 +478,11 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
             </div>
             <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-md">
               <strong>Shares Outstanding:</strong>{" "}
-              {sharesOutstanding.toLocaleString() ?? "N/A"}
+              {formatCurrency(sharesOutstanding) ?? "N/A"}
             </div>
             <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-md">
               <strong>Price:</strong>{" "}
-              {latestPrice ? `${latestPrice.toFixed(2)} SAR` : "N/A"}
+              {latestPrice ? `${formatCurrency(latestPrice.toFixed(2))}` : "N/A"}
             </div>
           </div>
         </div>

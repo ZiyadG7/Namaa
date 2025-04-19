@@ -18,6 +18,7 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from "@/components/ui/chart";
+import { formatCurrency } from "@/utils/formatters";
 
 type Price = {
   date: string;
@@ -42,7 +43,7 @@ export default function PriceOverTimeChart({ prices }: { prices: Price[] }) {
   };
 
   return (
-    <Card className="col-span-2">
+    <Card className="col-span-2 font-SaudiRiyal">
       <CardHeader>
         <CardTitle>Price Over Time</CardTitle>
         <CardDescription>Based on recent historical prices</CardDescription>
@@ -63,7 +64,7 @@ export default function PriceOverTimeChart({ prices }: { prices: Price[] }) {
               tick={{ fontSize: 12 }}
             />
             <YAxis
-              tickFormatter={(v) => `SAR ${v.toFixed(2)}`}
+              tickFormatter={(v) => formatCurrency(v)}
               tick={{ fontSize: 12 }}
               tickMargin={6}
             />
