@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Stock } from '@/types/common' 
+import { formatCurrency } from "@/utils/formatters";
 
 interface StockTableProps {
   stocks: Stock[];
@@ -37,10 +38,10 @@ export default function StockTable({ stocks, onUpdate }: StockTableProps) {
           {localStocks.map((item, index) => (
             <tr
               key={index}
-              className="text-center border-t dark:border-gray-600"
+              className="text-center border-t dark:border-gray-600 font-SaudiRiyal"
             >
               <td className="px-4 py-2">{item.company_name}</td>
-              <td className="px-4 py-2">${item.share_price}</td>
+              <td className="px-4 py-2">{formatCurrency(item.share_price)}</td>
               <td className="px-4 py-2">
                 <form
                   onSubmit={(e) => {
