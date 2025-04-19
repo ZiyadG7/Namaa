@@ -31,14 +31,6 @@ function splitAiOutput(aiResponse: string): {
   };
 }
 
-export const stockData: Stock[] = [
-  { name: "Apple Inc.", ticker: "AAPL", risk: "Low", sector: "Tech" },
-  { name: "Tesla Inc.", ticker: "TSLA", risk: "High", sector: "Auto" },
-  { name: "Pfizer Inc.", ticker: "PFE", risk: "Medium", sector: "Healthcare" },
-  { name: "Amazon.com", ticker: "AMZN", risk: "Medium", sector: "E-Commerce" },
-  { name: "Bank of America", ticker: "BAC", risk: "Low", sector: "Finance" },
-];
-
 export default function AssistantPage() {
   const [portfolio, setPortfolio] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);

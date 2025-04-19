@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       evaluate: "Evaluate the strengths and weaknesses of this portfolio:",
       //risk per stock 
       // risk :"Evaluate the positive and negative risk of each stock in this portfolio",
-      risk: "I have a list of stocks, each with the fields: name, ticker, and sector. Please: 1-Assign a risk level to each stock: Low, Medium, or High, based on general market perception and sector volatility. 2-Format the result as an array of objects with fields: name, ticker, sector, and risk. 3-After categorizing the stocks, analyze the portfolio and tell me: Whether my stock risk distribution is balanced. If not, recommend which risk category I should invest more in to achieve better balance. Just provide me with the list and the recommendation text in the form of [{},{},...]-text.",
+      risk: "I have a list of stocks, each with the fields: name, ticker, sector, number of owned stocks. Please: 1-Assign a risk level to each stock: Low, Medium, or High, based on general market perception and sector volatility. 2-Format the result as an array of objects with fields: name, ticker, sector, and risk. 3-After categorizing the stocks, analyze the portfolio and tell me: Whether my stock risk distribution is balanced. If not, recommend which risk category I should invest more in to achieve better balance. Just provide me with the list and the recommendation text in the form of [{},{},...]-text.",
       suggest: "Provide suggestions to improve this portfolio:",
 
       
