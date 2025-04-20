@@ -8,7 +8,6 @@ import MetricGauge from "../../Components/MetricGauge";
 import PriceOverTimeChart from "../../Components/PriceOverTimeChart";
 import { StockMetric, Financial, StockMetricsData } from "@/types/common";
 import { formatCurrency } from "@/utils/formatters";
-import { createClient } from "@/utils/supabase/server";
 
 
 // Utility functions
@@ -148,7 +147,6 @@ function getImageUrl(supabase: any, path: string) {
   const { data } = supabase.storage.from("logos").getPublicUrl(path);
   return data.publicUrl;
 }
-
 
 const fetchCompanyMetrics = async (supabase: any, companyId: string) => {
   const { data: metrics } = await supabase

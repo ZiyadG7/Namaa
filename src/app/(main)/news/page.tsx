@@ -44,8 +44,9 @@ export default function News() {
             className="flex bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden p-4 hover:shadow-lg transition-shadow"
           >
             <img
-              src={article.image_url || "/default-news.jpg"}
-              alt={article.title}
+              src={article.image_url}
+              alt="News"
+              onError={(e) => e.target.src = "/images/default-news.jpg"}
               className="w-32 h-32 object-cover rounded-lg"
             />
             <div className="ml-4 flex-1">
