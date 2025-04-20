@@ -24,7 +24,7 @@ export default function StockTable({ stocks, onUpdate }: StockTableProps) {
   return (
     <div className="max-w-xl overflow-x-auto shadow rounded-lg">
       <h2 className="text-xl font-semibold mb-4 text-blue-900 dark:text-blue-300 underline decoration-blue-300 dark:decoration-gray-600 decoration-2 underline-offset-8">
-        Stocks Table
+        My Stocks
       </h2>
       <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg">
         <thead className="bg-gray-100 dark:bg-gray-700">
