@@ -8,6 +8,8 @@ import MetricGauge from "../../Components/MetricGauge";
 import PriceOverTimeChart from "../../Components/PriceOverTimeChart";
 import { StockMetric, Financial, StockMetricsData } from "@/types/common";
 import { formatCurrency } from "@/utils/formatters";
+import { createClient } from "@/utils/supabase/server";
+
 
 // Utility functions
 const calcRatio = (
@@ -141,6 +143,12 @@ const fetchCompanyData = async (supabase: any, companyId: string) => {
 
   return company;
 };
+
+function getImageUrl(supabase: any, path: string) {
+  const { data } = supabase.storage.from("logos").getPublicUrl(path);
+  return data.publicUrl;
+}
+
 
 const fetchCompanyMetrics = async (supabase: any, companyId: string) => {
   const { data: metrics } = await supabase
@@ -458,9 +466,18 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col md:flex-row gap-6">
         <div className="md:w-2/3 space-y-6">
           <div className="flex items-center space-x-6">
-            <div className="bg-black dark:bg-white text-white dark:text-black rounded-full w-20 h-20 flex items-center justify-center text-3xl font-bold shadow-md">
+            {/* <div className="bg-black dark:bg-white text-white dark:text-black rounded-full w-20 h-20 flex items-center justify-center text-3xl font-bold shadow-md">
               {company.ticker?.[0]}
-            </div>
+            </div> */}
+            <div className="h-40 w-40 rounded-full overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-gray-300">
+  <img
+    src={getImageUrl(supabase, company.logo_url)}
+    alt="Company Logo"
+    className="h-full w-full object-contain"
+  />
+</div>
+
+
             <div>
               <h1 className="text-3xl font-bold">{company.company_name}</h1>
               <p className="text-base text-gray-600 dark:text-gray-300 mt-1">
