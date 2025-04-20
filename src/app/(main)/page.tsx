@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Loading from "./Components/Loading";
 import StockTable from "./Components/StockTable";
+import  TopTrendingStocks  from "@/app/(main)/Components/TopTrendingStocks";
 
 
 export default function DashboardPage() {
@@ -47,11 +48,18 @@ export default function DashboardPage() {
       <h2 className="text-xl font-semibold mb-4 text-blue-900 dark:text-blue-300 underline decoration-blue-300 dark:decoration-gray-600 decoration-2 underline-offset-8">
         Dashboard
       </h2>
-
+  
       {loading ? (
         <Loading />
       ) : (
-        <StockTable stocks={portfolio} onUpdate={handleUpdateStockCount} />
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="lg:w-1/2 w-full">
+            <StockTable stocks={portfolio} onUpdate={handleUpdateStockCount} />
+          </div>
+          <div className="lg:w-1/2 w-full">
+            <TopTrendingStocks />
+          </div>
+        </div>
       )}
     </div>
   );
