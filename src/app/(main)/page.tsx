@@ -5,6 +5,7 @@ import StockTable from "./Components/StockTable";
 import  TopTrendingStocks  from "@/app/(main)/Components/TopTrendingStocks";
 import { Article } from '@/types/common' 
 import DashboardNews from "./Components/DashboardNews";
+import FollowedStockPriceChart from "./Components/FollowedStockPriceChart";
 
 export default function DashboardPage() {
   const [portfolio, setPortfolio] = useState<any[]>([]);
@@ -75,14 +76,14 @@ export default function DashboardPage() {
       ) : (
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="lg:w-1/2 w-full">
-            <StockTable stocks={portfolio} onUpdate={handleUpdateStockCount} />
+          <FollowedStockPriceChart />
+            <DashboardNews />
+          </div>
+          <div className="lg:w-1/2 w-full">
+          <StockTable stocks={portfolio} onUpdate={handleUpdateStockCount} />
           </div>
           <div className="lg:w-1/2 w-full">
             <TopTrendingStocks />
-          </div>
-
-          <div className="lg:w-1/2 w-full">
-          <DashboardNews />
           </div>
         </div>
       )}

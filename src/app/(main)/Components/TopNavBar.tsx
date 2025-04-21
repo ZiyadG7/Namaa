@@ -46,9 +46,9 @@ export default async function TopHeader() {
   <div className="flex items-center justify-end px-8 py-4">
     <div className="flex items-center space-x-4">
       <ThemeSwitch />
-      <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">
+      {/* <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400">
         <FaBell className="h-5 w-5" />
-      </button>
+      </button> */}
       <LoginLogoutButton />
     </div>
   </div>

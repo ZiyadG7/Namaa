@@ -165,7 +165,7 @@ const fetchCompanyPrices = async (supabase: any, companyId: string) => {
     .from("stock_prices")
     .select("*")
     .eq("stock_id", companyId)
-    .order("date", { ascending: true })
+    .order("date", { ascending: false })
     .limit(7);
 
   return prices;
@@ -308,7 +308,7 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
   } = calculateFinancialRatios(financials);
 
   // Calculate PE ratio
-  const latestPrice = prices?.[prices.length - 1]?.share_price;
+  const latestPrice = prices?.[0]?.share_price;
   const peRatio =
     latestPrice && metrics?.eps && Number(metrics.eps) !== 0
       ? latestPrice / Number(metrics.eps)
@@ -506,8 +506,8 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
           <MetricGauge
             title="Current Ratio Gauge"
             company={currentRatio ?? 0}
-            sector={null}
-            market={null}
+            sector={sectorFinancialAverages.avgCurrentRatio ?? 0}
+            market={marketFinancialAverages.avgCurrentRatio ?? 0}
             max={3}
           />
         </div>

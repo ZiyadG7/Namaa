@@ -30,8 +30,8 @@ function createEmailContent(stocks: any[]): string {
         <tr style="background-color: #f2f2f2;">
           <th>Company Name</th>
           <th>Sector</th>
-          <th>Latest Price (Date)</th>
-          <th>Previous Price (Date)</th>
+          <th>Latest Price</th>
+          <th>Previous Price</th>
         </tr>
       </thead>
       <tbody>
@@ -41,17 +41,17 @@ function createEmailContent(stocks: any[]): string {
   const tableRows = stocks
     .map((stock: any) => {
       // Format prices with a dollar sign, or return 'N/A' if missing.
-      const latestPrice = stock.latest_price ? `$${stock.latest_price}` : 'N/A';
-      const latestDate = stock.latest_date ? new Date(stock.latest_date).toLocaleDateString() : 'N/A';
-      const previousPrice = stock.previous_price ? `$${stock.previous_price}` : 'N/A';
-      const previousDate = stock.previous_date ? new Date(stock.previous_date).toLocaleDateString() : 'N/A';
+      const latestPrice = stock.latest_price ? `﷼${stock.latest_price}` : 'N/A';
+      // const latestDate = stock.latest_date ? new Date(stock.latest_date).toLocaleDateString() : 'N/A';
+      const previousPrice = stock.previous_price ? `﷼${stock.previous_price}` : 'N/A';
+      // const previousDate = stock.previous_date ? new Date(stock.previous_date).toLocaleDateString() : 'N/A';
 
       return `
         <tr>
           <td>${stock.company_name}</td>
           <td>${stock.sector}</td>
-          <td>${latestPrice} (on ${latestDate})</td>
-          <td>${previousPrice} (on ${previousDate})</td>
+          <td>${latestPrice}</td>
+          <td>${previousPrice}</td>
         </tr>
       `;
     })
@@ -100,8 +100,8 @@ export async function POST() {
       try {
         await resend.emails.send({
           from: 'Weekly-Update@bahamdan.info', // Replace with your verified sender email.
-          // to: email,
-          to: ["Fares.bahamdan@gmail.com"],
+          to: email,
+          // to: ["Fares.bahamdan@gmail.com"],
           subject: 'Your Weekly Stock Update',
           html: emailHtml,
         });

@@ -27,7 +27,9 @@ type Price = {
 
 export default function PriceOverTimeChart({ prices }: { prices: Price[] }) {
   // Convert data to recharts format
-  const chartData = prices.map((p) => ({
+  const chartData = [...prices]
+  .reverse() // make sure prices go from oldest to newest
+  .map((p) => ({
     date: new Date(p.date).toLocaleDateString("en-SA", {
       month: "short",
       day: "numeric",

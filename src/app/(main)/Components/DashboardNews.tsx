@@ -41,10 +41,10 @@ export default function DashboardNews(){
                         src={article.image_url}
                         alt="News"
                         onError={(e) => e.target.src = "/images/default-news.jpg"}
-                        className="w-32 h-32 object-cover rounded-lg"
+                        className="w-16 h-16 object-cover rounded-lg"
                         />  
                         <div className="ml-4 flex-1">
-                            <h2 className="text-lg font-semibold text-gray-200 dark:text-white">
+                            <h2 className="text-s font-semibold text-gray-800 dark:text-white">
                                 {article.title}
                             </h2>
                         </div>
