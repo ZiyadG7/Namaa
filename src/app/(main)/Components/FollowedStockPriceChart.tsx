@@ -62,7 +62,7 @@ export default function StockPriceChart() {
           setError("No followed stocks found");
         }
       } catch (err) {
-        setError("Error fetching stocks data");
+        setError("Login to view Followed Stocks");
         console.error(err);
       } finally {
         setLoading(false);

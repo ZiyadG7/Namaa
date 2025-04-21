@@ -77,14 +77,13 @@ export default function DashboardPage() {
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="lg:w-1/2 w-full">
           <FollowedStockPriceChart />
-            <StockTable stocks={portfolio} onUpdate={handleUpdateStockCount} />
+            <DashboardNews />
+          </div>
+          <div className="lg:w-1/2 w-full">
+          <StockTable stocks={portfolio} onUpdate={handleUpdateStockCount} />
           </div>
           <div className="lg:w-1/2 w-full">
             <TopTrendingStocks />
-          </div>
-
-          <div className="lg:w-1/2 w-full">
-          <DashboardNews />
           </div>
         </div>
       )}
