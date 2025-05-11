@@ -553,7 +553,7 @@ const Page = async ({ params }: { params: { companyId: string } }) => {
 
         <EarningsRevenueChart
           revenue={financials?.total_revenue}
-          costOfRevenue={financials?.cost_of_revenue}
+          costOfRevenue={financials?.cost_of_revenue * 1000}
           otherExpenses={financials?.other_expenses}
         />
       </div>

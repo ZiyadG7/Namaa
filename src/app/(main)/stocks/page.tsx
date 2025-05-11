@@ -6,6 +6,7 @@ import { FaHeart, FaRegHeart } from "react-icons/fa";
 import Loading from "../Components/Loading";
 import { formatCurrency } from "@/utils/formatters";
 import { Company } from '@/types/common'
+import ScrollToTopButton from "@/app/(main)/Components/ScrollToTopButton";
 
 export default function CompaniesPage() {
   const router = useRouter();
@@ -317,6 +318,8 @@ export default function CompaniesPage() {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="bg-transparent w-full outline-none text-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
         />
+        <ScrollToTopButton />
+
       </div>
 
       {renderTable(filteredFollowed, "Followed Stocks")}

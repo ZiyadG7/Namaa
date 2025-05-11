@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Stock } from '@/types/common';
 import { formatCurrency } from "@/utils/formatters";
+import toast from "react-hot-toast";
 
 interface StockTableProps {
   stocks: Stock[];
@@ -28,9 +29,15 @@ export default function StockTable({ stocks, onSaveAll }: StockTableProps) {
 
   const handleSaveAll = async () => {
     setSaveStatus("saving");
-    const result = await onSaveAll(localStocks);
-    setSaveStatus(result ? "success" : "error");
-    setTimeout(() => setSaveStatus("idle"), 3000); // Reset after 3 sec
+    const success = await onSaveAll(localStocks);
+    if (success) {
+      setSaveStatus("success");
+      toast.success("Portfolio updated successfully!");
+    } else {
+      setSaveStatus("error");
+      toast.error("Failed to update portfolio.");
+    }
+    setTimeout(() => setSaveStatus("idle"), 3000);
   };
 
   return (
@@ -78,7 +85,6 @@ export default function StockTable({ stocks, onSaveAll }: StockTableProps) {
         </tbody>
       </table>
 
-      {/* Save Button */}
       {localStocks.length > 0 && (
         <div className="flex flex-col items-center mt-4">
           <Button
@@ -88,14 +94,6 @@ export default function StockTable({ stocks, onSaveAll }: StockTableProps) {
           >
             {saveStatus === "saving" ? "Saving..." : "Save All Changes"}
           </Button>
-
-          {/* Status Message */}
-          {saveStatus === "success" && (
-            <p className="mt-2 text-green-600 font-medium">Stocks updated successfully!</p>
-          )}
-          {saveStatus === "error" && (
-            <p className="mt-2 text-red-600 font-medium">Failed to update stocks. Try again.</p>
-          )}
         </div>
       )}
     </div>

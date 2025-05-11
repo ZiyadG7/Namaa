@@ -1,5 +1,6 @@
 import LeftNavBar from "./Components/LeftNavBar";
 import TopNavBar from "./Components/TopNavBar";
+import { Toaster } from "react-hot-toast";
 
 export default function MainLayout({
   children,
@@ -18,6 +19,7 @@ export default function MainLayout({
               <TopNavBar />
               {/* Page Content */}
               <main className="p-6 bg-b">{children}</main>
+              <Toaster position="bottom-center" />
             </div>
           </div>
       // </body>
